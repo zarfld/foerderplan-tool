@@ -1,17 +1,20 @@
 <script lang="ts">
-	import { onMount, beforeUpdate } from 'svelte';
+	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { saveDocument, exportToPDF } from '$lib/utils/dataExport';
 	import { initDB, saveData, loadData, saveAssessment } from '$lib/utils/database';
 	import FoerderplanForm from '$lib/components/FoerderplanForm.svelte';
 	import StudentManager from '$lib/components/StudentManager.svelte';
 	import AssessmentAnalysis from '$lib/components/AssessmentAnalysis.svelte';
+	import AssessmentHistory from '$lib/components/AssessmentHistory.svelte';
 
 	let data: any = {};
 	let db: any;
 	let currentStudent = '';
 	let showAnalysis = false;
 	let saveStatus = '';
+	let hasUnsavedChanges = false;
+	let lastSavedData: any = {};
 
 	onMount(async () => {
 		if (!browser) return;
@@ -60,21 +63,53 @@
 
 	function handleDataChange(event: CustomEvent) {
 		data = event.detail.data;
-		// Auto-save to local database
-		if (db) {
+		hasUnsavedChanges = true;
+		
+		// Auto-save to student-specific slot with versioning
+		if (db && currentStudent) {
+			// Save as student-specific assessment with timestamp
+			const timestamp = new Date().toISOString();
+			saveAssessment(db, currentStudent, data);
+			console.log(`Auto-saved assessment for ${currentStudent} at ${timestamp}`);
+			
+			// Also save to general current slot for continuity
 			saveData(db, 'current-foerderplan', data);
+			lastSavedData = { ...data };
+			hasUnsavedChanges = false;
+		} else if (db) {
+			// Fallback for when no student is selected
+			saveData(db, 'current-foerderplan', data);
+			lastSavedData = { ...data };
+			hasUnsavedChanges = false;
 		}
 	}
 
 	function handleStudentChanged(event: CustomEvent) {
 		const { student, data: studentData } = event.detail;
+		console.log('Main page handleStudentChanged:', student, studentData);
 		currentStudent = student;
-		data = studentData;
-		
-		// Also save to generic current slot
-		if (db) {
-			saveData(db, 'current-foerderplan', data);
-		}
+		// Force complete data replacement to trigger reactivity
+		data = {};  // Clear first
+		setTimeout(() => {
+			data = { ...studentData }; // Then set new data
+			lastSavedData = { ...data };
+			hasUnsavedChanges = false;
+			console.log('Main page received student change:', student, data);
+			
+			// Also save to general current slot for continuity
+			if (db) {
+				saveData(db, 'current-foerderplan', data);
+			}
+		}, 10);
+	}
+
+	function handleAssessmentLoaded(event: CustomEvent) {
+		const { student, data: assessmentData, timestamp } = event.detail;
+		currentStudent = student;
+		data = { ...assessmentData };
+		lastSavedData = { ...data };
+		hasUnsavedChanges = false;
+		console.log(`Loaded assessment from ${timestamp} for ${student}`);
 	}
 
 	function handleAssessmentSaved(event: CustomEvent) {
@@ -172,8 +207,16 @@
 			{db} 
 			bind:currentStudent 
 			bind:currentData={data}
+			{hasUnsavedChanges}
 			on:studentChanged={handleStudentChanged}
 			on:assessmentSaved={handleAssessmentSaved}
+		/>
+
+		<!-- Assessment History -->
+		<AssessmentHistory 
+			{db} 
+			{currentStudent}
+			on:loadAssessment={handleAssessmentLoaded}
 		/>
 
 		<!-- Assessment Form -->
@@ -183,7 +226,9 @@
 					<h3>Assessment für: <strong>{currentStudent}</strong></h3>
 				</div>
 			{/if}
-			<FoerderplanForm {data} on:change={handleDataChange} />
+			{#key currentStudent + JSON.stringify(data?.student?.name)}
+				<FoerderplanForm {data} on:change={handleDataChange} />
+			{/key}
 		</div>
 	{:else}
 		<!-- Assessment Analysis -->
@@ -312,6 +357,51 @@
 		outline: none;
 		border-color: #2563eb;
 		box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+	}
+
+	/* Chrome-specific table improvements */
+	:global(table) {
+		border-collapse: separate !important;
+		border-spacing: 0;
+		width: 100%;
+		margin-bottom: 1rem;
+	}
+
+	:global(table th, table td) {
+		border: 1px solid #d1d5db;
+		padding: 0.75rem;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	:global(table th) {
+		background-color: #f9fafb;
+		font-weight: 600;
+		border-bottom: 2px solid #d1d5db;
+	}
+
+	:global(table tr:nth-child(even)) {
+		background-color: #f9fafb;
+	}
+
+	:global(table tr:hover) {
+		background-color: #e5e7eb;
+	}
+
+	/* Better dropdown styling */
+	:global(select) {
+		appearance: none;
+		background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+		background-position: right 0.5rem center;
+		background-repeat: no-repeat;
+		background-size: 1.5em 1.5em;
+		padding-right: 2.5rem;
+	}
+
+	:global(select:disabled) {
+		background-color: #f3f4f6;
+		color: #6b7280;
+		cursor: not-allowed;
 	}
 
 	@media (max-width: 768px) {

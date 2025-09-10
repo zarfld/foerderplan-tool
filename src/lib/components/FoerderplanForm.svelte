@@ -5,80 +5,154 @@
 	
 	const dispatch = createEventDispatcher();
 	
-	// Initialize data structure if empty
-	if (!data.student) data.student = {};
-	if (!data.assessmentPeriod) data.assessmentPeriod = {};
-	if (!data.spracheSprechen) data.spracheSprechen = { assessments: [] };
-	if (!data.lesen) data.lesen = { assessments: [] };
-	if (!data.schreiben) data.schreiben = { assessments: [] };
-	if (!data.mathematik) data.mathematik = { assessments: [] };
-	if (!data.foerdermassnahmen) data.foerdermassnahmen = {};
+	// Function to initialize data structure
+	function initializeData(currentData: any) {
+		// If no data provided, create empty structure
+		if (!currentData) {
+			currentData = {};
+		}
+		
+		if (!currentData.student) currentData.student = {};
+		if (!currentData.assessmentPeriod) currentData.assessmentPeriod = {};
+		if (!currentData.spracheSprechen) currentData.spracheSprechen = { assessments: [] };
+		if (!currentData.lesen) currentData.lesen = { assessments: [] };
+		if (!currentData.schreiben) currentData.schreiben = { assessments: [] };
+		if (!currentData.mathematik) currentData.mathematik = { assessments: [] };
+		if (!currentData.foerdermassnahmen) currentData.foerdermassnahmen = {};
 
-	// Initialize assessments with default tasks if empty
-	if (data.spracheSprechen.assessments.length === 0) {
-		data.spracheSprechen.assessments = [
-			{"task": "Verwendet das Kind einen altersgemäßen Wortschatz?", "status": "", "notes": ""},
-			{"task": "Kann es zusammenhängend erzählen und berichten?", "status": "", "notes": ""},
-			{"task": "Beschreibt es in ganzen, zusammenhängenden Sätzen?", "status": "", "notes": ""},
-			{"task": "Versteht es Anweisungen und Aufträge an die eigene Person?", "status": "", "notes": ""},
-			{"task": "Versteht es Anweisungen und Aufträge an die Gruppe?", "status": "", "notes": ""},
-			{"task": "Zeigt es auffällige Störungen im Wortschatz?", "status": "", "notes": ""},
-			{"task": "Zeigt es auffällige Störungen in der Grammatik?", "status": "", "notes": ""},
-			{"task": "Richtige Lautbildung beim Nachsprechen von Silben, Wörtern, Sätzen?", "status": "", "notes": ""},
-			{"task": "Redefluss fließend?", "status": "", "notes": ""}
-		];
+		// Initialize assessments with default tasks if empty
+		if (currentData.spracheSprechen.assessments.length === 0) {
+			currentData.spracheSprechen.assessments = [
+				{"task": "Verwendet das Kind einen altersgemäßen Wortschatz?", "status": "", "notes": ""},
+				{"task": "Kann es zusammenhängend erzählen und berichten?", "status": "", "notes": ""},
+				{"task": "Beschreibt es in ganzen, zusammenhängenden Sätzen?", "status": "", "notes": ""},
+				{"task": "Versteht es Anweisungen und Aufträge an die eigene Person?", "status": "", "notes": ""},
+				{"task": "Versteht es Anweisungen und Aufträge an die Gruppe?", "status": "", "notes": ""},
+				{"task": "Zeigt es auffällige Störungen im Wortschatz?", "status": "", "notes": ""},
+				{"task": "Zeigt es auffällige Störungen in der Grammatik?", "status": "", "notes": ""},
+				{"task": "Richtige Lautbildung beim Nachsprechen von Silben, Wörtern, Sätzen?", "status": "", "notes": ""},
+				{"task": "Redefluss fließend?", "status": "", "notes": ""}
+			];
+		}
+
+		if (currentData.lesen.assessments.length === 0) {
+			currentData.lesen.assessments = [
+				{"task": "Kann das Kind die bisher eingeführten Buchstaben lautieren?", "status": "", "notes": ""},
+				{"task": "Kommen immer wieder Verwechslungen vor?", "status": "", "notes": ""},
+				{"task": "Erkennt das Kind häufig gelesene Wörter wieder?", "status": "", "notes": ""},
+				{"task": "Das Kind kann Pseudowörter nicht lesen.", "status": "", "notes": ""},
+				{"task": "Das Kind buchstabiert fast alle Wörter. Der Sinn des Gelesenen wird zumeist nicht erfasst.", "status": "", "notes": ""},
+				{"task": "Das Kind liest stockend, weil es noch zu viele Wörter erlesen muss. Der Sinn des Erlesenen wird einigermaßen erfasst.", "status": "", "notes": ""},
+				{"task": "Hat das Kind Interesse am Leseunterricht", "status": "", "notes": ""},
+				{"task": "Das Kind kann wohl flüssig lesen, nicht jedoch den Textsinn erfassen.", "status": "", "notes": ""},
+				{"task": "Das Kind kann ausreichend flüssig lesen, um den Textsinn zu erfassen.", "status": "", "notes": ""}
+			];
+		}
+
+		if (currentData.schreiben.assessments.length === 0) {
+			currentData.schreiben.assessments = [
+				{"task": "Kann es die Buchstaben formgerecht abschreiben?", "status": "", "notes": ""},
+				{"task": "Kann das Kind genannte Buchstaben schreiben?", "status": "", "notes": ""},
+				{"task": "Das Kind schreibt lautgetreu?", "status": "", "notes": ""},
+				{"task": "Kann es die Druckschrift in Schreibschrift umsetzen?", "status": "", "notes": ""},
+				{"task": "Gelingt das Abschreiben von Wörtern ohne Fehler?", "status": "", "notes": ""},
+				{"task": "Gelingt das Abschreiben von Texten ohne Fehler?", "status": "", "notes": ""},
+				{"task": "Kann es die wichtigsten Wörter des Grundwortschatzes auswendig schreiben?", "status": "", "notes": ""},
+				{"task": "Kann es häufig geübte Wörter richtig schreiben?", "status": "", "notes": ""},
+				{"task": "Kann es angesagte Sätze richtig schreiben?", "status": "", "notes": ""},
+				{"task": "Findet es Fehler in eigenen Texten?", "status": "", "notes": ""},
+				{"task": "Das Kind spricht beim Schreiben mit.", "status": "", "notes": ""},
+				{"task": "Formuliert es Texte so, dass ein sinnvoller Ablauf der Geschichte entsteht?", "status": "", "notes": ""},
+				{"task": "Hat das Kind Freude am Schreiben", "status": "", "notes": ""}
+			];
+		}
+
+		if (currentData.mathematik.assessments.length === 0) {
+			currentData.mathematik.assessments = [
+				{"task": "Das Kind kann Mengen erfassen bis …", "status": "", "notes": ""},
+				{"task": "Beim Brettspiel (Mensch ärgere Dich nicht etc.) rückt es die gewürfelte Anzahl vor (und rückt die Spielfigur nicht eins für eins weiter)", "status": "", "notes": ""},
+				{"task": "Es hat eine Ziffernkenntnis bis …", "status": "", "notes": ""},
+				{"task": "Vor und Rückwärtszählen gelingt bis …", "status": "", "notes": ""},
+				{"task": "Zuzählen gelingt mit Veranschaulichung im Zahlenraum ............", "status": "", "notes": ""},
+				{"task": "Zuzählen gelingt ohne Veranschaulichung im Zahlenraum ...........", "status": "", "notes": ""},
+				{"task": "Rechnet das Kind noch immer zählend?", "status": "", "notes": ""},
+				{"task": "Gelingen Rechnungen mit Platzhaltern?", "status": "", "notes": ""},
+				{"task": "Treten Unsicherheiten im Kopfrechnen auf?", "status": "", "notes": ""},
+				{"task": "Kann es schriftlich addieren?", "status": "", "notes": ""},
+				{"task": "Kann es schriftlich subtrahieren?", "status": "", "notes": ""},
+				{"task": "Kann es schriftlich multiplizieren?", "status": "", "notes": ""},
+				{"task": "Kann es schriftlich dividieren?", "status": "", "notes": ""},
+				{"task": "Kann es Sachaufgaben berechnen?", "status": "", "notes": ""},
+				{"task": "Hat das Kind Interesse am Rechnen", "status": "", "notes": ""}
+			];
+		}
+		
+		return currentData;	}
+	
+	// Initialize data on component load and force reactivity
+	let lastDataSignature = '';
+	let formKey = 0; // Force re-render key
+	
+	// Reactive statement to reinitialize when data changes externally
+	$: {
+		const currentSignature = JSON.stringify(data?.student?.name || '') + JSON.stringify(Object.keys(data || {}));
+		if (currentSignature !== lastDataSignature && data) {
+			console.log('FoerderplanForm: Data changed, reinitializing...', data);
+			data = initializeData({ ...data }); // Create new object reference
+			lastDataSignature = currentSignature;
+			formKey++; // Force re-render
+		}
 	}
 
-	if (data.lesen.assessments.length === 0) {
-		data.lesen.assessments = [
-			{"task": "Kann das Kind die bisher eingeführten Buchstaben lautieren?", "status": "", "notes": ""},
-			{"task": "Kommen immer wieder Verwechslungen vor?", "status": "", "notes": ""},
-			{"task": "Erkennt das Kind häufig gelesene Wörter wieder?", "status": "", "notes": ""},
-			{"task": "Das Kind kann Pseudowörter nicht lesen.", "status": "", "notes": ""},
-			{"task": "Das Kind buchstabiert fast alle Wörter. Der Sinn des Gelesenen wird zumeist nicht erfasst.", "status": "", "notes": ""},
-			{"task": "Das Kind liest stockend, weil es noch zu viele Wörter erlesen muss. Der Sinn des Erlesenen wird einigermaßen erfasst.", "status": "", "notes": ""},
-			{"task": "Hat das Kind Interesse am Leseunterricht", "status": "", "notes": ""},
-			{"task": "Das Kind kann wohl flüssig lesen, nicht jedoch den Textsinn erfassen.", "status": "", "notes": ""},
-			{"task": "Das Kind kann ausreichend flüssig lesen, um den Textsinn zu erfassen.", "status": "", "notes": ""}
-		];
+	// Initialize with default value to prevent undefined errors
+	let timeframe = '';
+	let studentClass = '';
+	let studentName = '';
+	let teacherName = '';
+	
+	// Reactive assignments to sync with data - simplified approach
+	$: {
+		if (data?.assessmentPeriod?.timeframe !== undefined) {
+			timeframe = data.assessmentPeriod.timeframe;
+		}
+		if (data?.student?.class !== undefined) {
+			studentClass = data.student.class;
+		}
+		if (data?.student?.name !== undefined) {
+			studentName = data.student.name;
+		}
+		if (data?.student?.teacher !== undefined) {
+			teacherName = data.student.teacher;
+		}
 	}
-
-	if (data.schreiben.assessments.length === 0) {
-		data.schreiben.assessments = [
-			{"task": "Kann es die Buchstaben formgerecht abschreiben?", "status": "", "notes": ""},
-			{"task": "Kann das Kind genannte Buchstaben schreiben?", "status": "", "notes": ""},
-			{"task": "Das Kind schreibt lautgetreu?", "status": "", "notes": ""},
-			{"task": "Kann es die Druckschrift in Schreibschrift umsetzen?", "status": "", "notes": ""},
-			{"task": "Gelingt das Abschreiben von Wörtern ohne Fehler?", "status": "", "notes": ""},
-			{"task": "Gelingt das Abschreiben von Texten ohne Fehler?", "status": "", "notes": ""},
-			{"task": "Kann es die wichtigsten Wörter des Grundwortschatzes auswendig schreiben?", "status": "", "notes": ""},
-			{"task": "Kann es häufig geübte Wörter richtig schreiben?", "status": "", "notes": ""},
-			{"task": "Kann es angesagte Sätze richtig schreiben?", "status": "", "notes": ""},
-			{"task": "Findet es Fehler in eigenen Texten?", "status": "", "notes": ""},
-			{"task": "Das Kind spricht beim Schreiben mit.", "status": "", "notes": ""},
-			{"task": "Formuliert es Texte so, dass ein sinnvoller Ablauf der Geschichte entsteht?", "status": "", "notes": ""},
-			{"task": "Hat das Kind Freude am Schreiben", "status": "", "notes": ""}
-		];
+	
+	// Update data when local values change
+	function updateTimeframe() {
+		if (data.assessmentPeriod) {
+			data.assessmentPeriod.timeframe = timeframe;
+		}
+		updateData();
 	}
-
-	if (data.mathematik.assessments.length === 0) {
-		data.mathematik.assessments = [
-			{"task": "Das Kind kann Mengen erfassen bis …", "status": "", "notes": ""},
-			{"task": "Beim Brettspiel (Mensch ärgere Dich nicht etc.) rückt es die gewürfelte Anzahl vor (und rückt die Spielfigur nicht eins für eins weiter)", "status": "", "notes": ""},
-			{"task": "Es hat eine Ziffernkenntnis bis …", "status": "", "notes": ""},
-			{"task": "Vor und Rückwärtszählen gelingt bis …", "status": "", "notes": ""},
-			{"task": "Zuzählen gelingt mit Veranschaulichung im Zahlenraum ............", "status": "", "notes": ""},
-			{"task": "Zuzählen gelingt ohne Veranschaulichung im Zahlenraum ...........", "status": "", "notes": ""},
-			{"task": "Rechnet das Kind noch immer zählend?", "status": "", "notes": ""},
-			{"task": "Gelingen Rechnungen mit Platzhaltern?", "status": "", "notes": ""},
-			{"task": "Treten Unsicherheiten im Kopfrechnen auf?", "status": "", "notes": ""},
-			{"task": "Kann es schriftlich addieren?", "status": "", "notes": ""},
-			{"task": "Kann es schriftlich subtrahieren?", "status": "", "notes": ""},
-			{"task": "Kann es schriftlich multiplizieren?", "status": "", "notes": ""},
-			{"task": "Kann es schriftlich dividieren?", "status": "", "notes": ""},
-			{"task": "Kann es Sachaufgaben berechnen?", "status": "", "notes": ""},
-			{"task": "Sonstige Auffälligkeiten in Mathematik:", "status": "", "notes": ""}
-		];
+	
+	function updateStudentClass() {
+		if (data.student) {
+			data.student.class = studentClass;
+		}
+		updateData();
+	}
+	
+	function updateStudentName() {
+		if (data.student) {
+			data.student.name = studentName;
+		}
+		updateData();
+	}
+	
+	function updateTeacherName() {
+		if (data.student) {
+			data.student.teacher = teacherName;
+		}
+		updateData();
 	}
 
 	function updateData() {
@@ -86,6 +160,7 @@
 	}
 </script>
 
+{#key formKey}
 <div class="foerderplan-form">
 	<h1>📋 Förderplan für den Förderunterricht</h1>
 
@@ -97,8 +172,8 @@
 				<input
 					id="zeitraum"
 					type="text"
-					bind:value={data.assessmentPeriod.timeframe}
-					on:input={updateData}
+					bind:value={timeframe}
+					on:input={updateTimeframe}
 					placeholder="z.B. Schuljahr 2024/2025, 1. Halbjahr"
 				/>
 			</div>
@@ -107,8 +182,8 @@
 				<input
 					id="klasse"
 					type="text"
-					bind:value={data.student.class}
-					on:input={updateData}
+					bind:value={studentClass}
+					on:input={updateStudentClass}
 					placeholder="z.B. 2A"
 				/>
 			</div>
@@ -117,8 +192,8 @@
 				<input
 					id="klassenlehrerin"
 					type="text"
-					bind:value={data.student.teacher}
-					on:input={updateData}
+					bind:value={teacherName}
+					on:input={updateTeacherName}
 					placeholder="Name der Lehrerin"
 				/>
 			</div>
@@ -127,8 +202,8 @@
 				<input
 					id="schuelerin"
 					type="text"
-					bind:value={data.student.name}
-					on:input={updateData}
+					bind:value={studentName}
+					on:input={updateStudentName}
 					placeholder="Name des Schülers/der Schülerin"
 				/>
 			</div>
@@ -150,7 +225,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each data.spracheSprechen.assessments as assessment, index}
+					{#each (data.spracheSprechen?.assessments || []) as assessment, index}
 						<tr>
 							<td class="task-cell">{assessment.task}</td>
 							<td class="status-cell">
@@ -214,7 +289,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each data.lesen.assessments as assessment, index}
+					{#each (data.lesen?.assessments || []) as assessment, index}
 						<tr>
 							<td class="task-cell">{assessment.task}</td>
 							<td class="status-cell">
@@ -271,7 +346,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each data.schreiben.assessments as assessment, index}
+					{#each (data.schreiben?.assessments || []) as assessment, index}
 						<tr>
 							<td class="task-cell">{assessment.task}</td>
 							<td class="status-cell">
@@ -328,7 +403,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each data.mathematik.assessments as assessment, index}
+					{#each (data.mathematik?.assessments || []) as assessment, index}
 						<tr>
 							<td class="task-cell">{assessment.task}</td>
 							<td class="status-cell">
@@ -835,3 +910,4 @@
 		}
 	}
 </style>
+{/key}

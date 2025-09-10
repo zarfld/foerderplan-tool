@@ -5,6 +5,7 @@
 	export let db: any;
 	export let currentStudent: string = '';
 	export let currentData: any = {};
+	export let hasUnsavedChanges: boolean = false;
 	
 	const dispatch = createEventDispatcher();
 	
@@ -54,33 +55,95 @@
 		}
 	}
 	
+	let isChangingStudent = false;
+	let pendingStudentChange = '';
+	
 	// Select a student and load their latest assessment
 	async function selectStudent(studentName: string) {
-		// Save current student's data before switching
-		if (currentStudent && Object.keys(currentData).length > 0) {
-			try {
-				await saveAssessment(db, currentStudent, currentData);
-				console.log('Saved data for previous student:', currentStudent);
-			} catch (error) {
-				console.error('Error saving previous student data:', error);
+		console.log('selectStudent called with:', studentName, 'current:', currentStudent);
+		
+		// If no student name provided, do nothing
+		if (!studentName) {
+			console.log('No student name provided, returning');
+			return;
+		}
+		
+		// If same student selected, do nothing
+		if (studentName === currentStudent) {
+			console.log('Same student already selected, returning');
+			return;
+		}
+		
+		// Check if there's unsaved data for current student
+		const hasUnsavedData = currentStudent && (hasUnsavedChanges || Object.keys(currentData).length > 0);
+		
+		if (hasUnsavedData) {
+			// Ask user if they want to save current data
+			const shouldSave = confirm(
+				`Möchten Sie das aktuelle Assessment für "${currentStudent}" speichern, bevor Sie zu "${studentName}" wechseln?`
+			);
+			
+			if (shouldSave) {
+				try {
+					await saveAssessment(db, currentStudent, currentData);
+					console.log('Saved data for previous student:', currentStudent);
+				} catch (error) {
+					console.error('Error saving previous student data:', error);
+					alert('Fehler beim Speichern der Daten für ' + currentStudent);
+					// Reset dropdown to previous selection
+					currentStudent = currentStudent; // Force re-render
+					return;
+				}
 			}
 		}
 		
 		// Load new student's latest assessment
+		isChangingStudent = true;
 		try {
 			const latestData = await loadLatestAssessment(db, studentName);
 			currentStudent = studentName;
+			
+			// Update currentData to reflect the loaded data
+			if (latestData && Object.keys(latestData).length > 0) {
+				currentData = { ...latestData };
+			} else {
+				// Initialize with empty data structure if no saved data
+				currentData = {
+					student: { name: studentName },
+					assessmentPeriod: {},
+					spracheSprechen: { assessments: [] },
+					lesen: { assessments: [] },
+					schreiben: { assessments: [] },
+					mathematik: { assessments: [] },
+					foerdermassnahmen: {}
+				};
+			}
+			
 			dispatch('studentChanged', { 
 				student: studentName, 
-				data: latestData || {} 
+				data: currentData 
 			});
+			
+			console.log('Switched to student:', studentName, 'with data:', currentData);
 		} catch (error) {
 			console.error('Error loading student data:', error);
+			// Still switch student but with empty data
 			currentStudent = studentName;
+			currentData = {
+				student: { name: studentName },
+				assessmentPeriod: {},
+				spracheSprechen: { assessments: [] },
+				lesen: { assessments: [] },
+				schreiben: { assessments: [] },
+				mathematik: { assessments: [] },
+				foerdermassnahmen: {}
+			};
 			dispatch('studentChanged', { 
 				student: studentName, 
-				data: {} 
+				data: currentData 
 			});
+		} finally {
+			isChangingStudent = false;
 		}
 	}
 	
@@ -96,6 +159,80 @@
 		}
 	}
 	
+	// Handle dropdown selection
+	function handleStudentSelection() {
+		console.log('Dropdown selection changed to:', currentStudent);
+		if (currentStudent) {
+			console.log('Calling selectStudent with:', currentStudent);
+			// Force reload by bypassing the "same student" check
+			selectStudentForced(currentStudent);
+		} else {
+			console.log('No student selected, skipping selectStudent call');
+		}
+	}
+	
+	// Force select student (bypasses same student check)
+	async function selectStudentForced(studentName: string) {
+		console.log('selectStudentForced called with:', studentName);
+		
+		// If no student name provided, do nothing
+		if (!studentName) {
+			console.log('No student name provided, returning');
+			return;
+		}
+		
+		// Load new student's latest assessment (bypass same student check)
+		isChangingStudent = true;
+		try {
+			const latestData = await loadLatestAssessment(db, studentName);
+			currentStudent = studentName;
+			
+			// Update currentData to reflect the loaded data
+			if (latestData && Object.keys(latestData).length > 0) {
+				currentData = { ...latestData };
+				console.log('Loaded existing data for student:', studentName, latestData);
+			} else {
+				// Initialize with empty data structure if no saved data
+				currentData = {
+					student: { name: studentName },
+					assessmentPeriod: {},
+					spracheSprechen: { assessments: [] },
+					lesen: { assessments: [] },
+					schreiben: { assessments: [] },
+					mathematik: { assessments: [] },
+					foerdermassnahmen: {}
+				};
+				console.log('No existing data, initialized empty structure for:', studentName);
+			}
+			
+			dispatch('studentChanged', { 
+				student: studentName, 
+				data: currentData 
+			});
+			
+			console.log('Switched to student:', studentName, 'with data:', currentData);
+		} catch (error) {
+			console.error('Error loading student data:', error);
+			// Still switch student but with empty data
+			currentStudent = studentName;
+			currentData = {
+				student: { name: studentName },
+				assessmentPeriod: {},
+				spracheSprechen: { assessments: [] },
+				lesen: { assessments: [] },
+				schreiben: { assessments: [] },
+				mathematik: { assessments: [] },
+				foerdermassnahmen: {}
+			};
+			dispatch('studentChanged', { 
+				student: studentName, 
+				data: currentData 
+			});
+		} finally {
+			isChangingStudent = false;
+		}
+	}
+
 	// Initialize when db becomes available
 	$: if (db) {
 		loadStudents();
@@ -105,11 +242,15 @@
 <div class="student-manager">
 	<div class="student-selector">
 		<label for="student-select">Aktueller Schüler:</label>
+		{#if hasUnsavedChanges}
+			<div class="unsaved-indicator">⚠️ Ungespeicherte Änderungen</div>
+		{/if}
 		<div class="select-container">
 			<select 
 				id="student-select" 
 				bind:value={currentStudent} 
-				on:change={() => selectStudent(currentStudent)}
+				on:change={handleStudentSelection}
+				disabled={isChangingStudent}
 			>
 				<option value="">-- Schüler auswählen --</option>
 				{#each students as student}
@@ -130,9 +271,14 @@
 					class="btn btn-sm btn-primary" 
 					on:click={saveCurrentAssessment}
 					title="Assessment speichern"
+					disabled={isChangingStudent}
 				>
 					💾
 				</button>
+			{/if}
+			
+			{#if isChangingStudent}
+				<span class="loading-indicator">🔄 Lade...</span>
 			{/if}
 		</div>
 	</div>
@@ -383,6 +529,27 @@
 	.close-panel {
 		width: 100%;
 		margin-top: 1rem;
+	}
+
+	.loading-indicator {
+		font-size: 0.875rem;
+		color: #6b7280;
+		animation: spin 1s linear infinite;
+	}
+
+	.unsaved-indicator {
+		font-size: 0.75rem;
+		color: #f59e0b;
+		background-color: #fef3c7;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		margin-bottom: 0.5rem;
+		border: 1px solid #f59e0b;
+	}
+	
+	@keyframes spin {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
 	}
 
 	@media (max-width: 768px) {

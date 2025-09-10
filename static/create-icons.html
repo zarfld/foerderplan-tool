@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Create a simple blue icon with white text
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(0, 0, 512, 512);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 120px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('📋', 256, 256);
+        
+        // Export as PNG
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'icon-512.png';
+            a.click();
+        });
+        
+        // Create 192x192 version
+        const canvas192 = document.createElement('canvas');
+        canvas192.width = 192;
+        canvas192.height = 192;
+        const ctx192 = canvas192.getContext('2d');
+        ctx192.drawImage(canvas, 0, 0, 512, 512, 0, 0, 192, 192);
+        
+        canvas192.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'icon-192.png';
+            a.click();
+        });
+    </script>
+</body>
+</html>

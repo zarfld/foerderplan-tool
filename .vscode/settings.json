@@ -6,5 +6,21 @@
 	},
 	"emmet.includeLanguages": {
 		"svelte": "html"
-	}
+	},
+	"files.exclude": {
+		"**/node_modules/**": true,
+		"**/.svelte-kit/**": true,
+		"**/build/**": true,
+		"**/dist/**": true,
+		"**/package/**": true
+	},
+	"search.exclude": {
+		"**/node_modules/**": true,
+		"**/.svelte-kit/**": true,
+		"**/build/**": true,
+		"**/dist/**": true,
+		"**/package/**": true
+	},
+	"typescript.preferences.maxInlayHintLength": 30,
+	"svelte.plugin.typescript.semanticTokens.enable": false
 }

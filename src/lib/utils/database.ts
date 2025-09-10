@@ -91,14 +91,15 @@ export async function loadData(database: any, id: string): Promise<any | null> {
 	try {
 		const doc = await database.get(id);
 		console.log('Data loaded successfully:', id);
-		return (doc as any).data;
+		return doc.data;
 	} catch (error) {
-		if ((error as any).status === 404) {
-			console.log('Document not found:', id);
+		// Handle both PouchDB-style errors and simple errors
+		if ((error as any).status === 404 || (error as any).message === 'Document not found') {
+			console.log('Document not found (first time load):', id);
 			return null;
 		}
 		console.error('Error loading data:', error);
-		throw error;
+		return null; // Return null instead of throwing to prevent app crash
 	}
 }
 
@@ -159,7 +160,7 @@ export async function syncWithCouchDB(localDB: PouchDB.Database, remoteURL: stri
 }
 
 // Student management functions
-export async function saveStudentList(database: PouchDB.Database, students: string[]): Promise<void> {
+export async function saveStudentList(database: any, students: string[]): Promise<void> {
 	try {
 		const timestamp = new Date().toISOString();
 		let doc: any = {
@@ -184,21 +185,22 @@ export async function saveStudentList(database: PouchDB.Database, students: stri
 	}
 }
 
-export async function loadStudentList(database: PouchDB.Database): Promise<string[]> {
+export async function loadStudentList(database: any): Promise<string[]> {
 	try {
 		const doc = await database.get('student-list');
-		return (doc as any).students || [];
+		return doc.students || [];
 	} catch (error) {
-		if ((error as any).status === 404) {
-			console.log('Student list not found, returning empty array');
+		// Handle both PouchDB-style errors and simple errors
+		if ((error as any).status === 404 || (error as any).message === 'Document not found') {
+			console.log('Student list not found (first time), returning empty array');
 			return [];
 		}
 		console.error('Error loading student list:', error);
-		throw error;
+		return []; // Return empty array instead of throwing
 	}
 }
 
-export async function saveAssessment(database: PouchDB.Database, studentName: string, assessmentData: any): Promise<string> {
+export async function saveAssessment(database: any, studentName: string, assessmentData: any): Promise<string> {
 	try {
 		const timestamp = new Date().toISOString();
 		const cleanName = studentName.replace(/[^a-zA-Z0-9äöüßÄÖÜ]/g, '_');
@@ -222,31 +224,40 @@ export async function saveAssessment(database: PouchDB.Database, studentName: st
 	}
 }
 
-export async function loadLatestAssessment(database: PouchDB.Database, studentName: string): Promise<any> {
+export async function loadLatestAssessment(database: any, studentName: string): Promise<any> {
 	try {
+		console.log('loadLatestAssessment called for student:', studentName);
 		const cleanName = studentName.replace(/[^a-zA-Z0-9äöüßÄÖÜ]/g, '_');
+		console.log('Clean name:', cleanName);
+		
 		const result = await database.allDocs({
 			include_docs: true,
 			startkey: `assessment-${cleanName}-`,
 			endkey: `assessment-${cleanName}-\ufff0`
 		});
 
+		console.log('Database query result:', result);
+
 		if (result.rows.length === 0) {
 			console.log('No assessments found for student:', studentName);
 			return null;
 		}
 
-		// Sort by timestamp and get the latest
+		// Sort by timestamp and get the latest - FILTER BY STUDENT NAME!
 		const assessments = result.rows
-			.map(row => row.doc as any)
-			.filter(doc => doc.type === 'assessment')
-			.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+			.map((row: any) => row.doc)
+			.filter((doc: any) => doc && doc.type === 'assessment' && doc.studentName === studentName)
+			.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+		console.log('Found assessments:', assessments.length);
+		console.log('All assessments for debug:', assessments.map((a: any) => ({id: a._id, student: a.studentName, timestamp: a.timestamp})));
+		
 		if (assessments.length === 0) {
+			console.log('No valid assessments after filtering');
 			return null;
 		}
 
-		console.log('Latest assessment loaded for student:', studentName);
+		console.log('Latest assessment loaded for student:', studentName, assessments[0]);
 		return assessments[0].assessmentData;
 	} catch (error) {
 		console.error('Error loading latest assessment:', error);
