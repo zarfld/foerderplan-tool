@@ -104,7 +104,7 @@ class HybridDatabase {
 				// Simple implementation for basic queries
 				const allDocsResult = await this.allDocs({ include_docs: true });
 				return {
-					docs: allDocsResult.rows.map(row => row.doc).filter(Boolean)
+					docs: allDocsResult.rows.map((row: any) => row.doc).filter(Boolean)
 				};
 			}
 		};

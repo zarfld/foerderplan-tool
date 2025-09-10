@@ -10,7 +10,7 @@
 	export let params: any = undefined; // Accept params prop to prevent warning
 	
 	// Mark as used to prevent warnings
-	data, params;
+	void (data && params);
 
 	let db: any;
 	let currentStudent = '';

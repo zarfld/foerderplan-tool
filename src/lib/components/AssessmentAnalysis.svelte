@@ -133,10 +133,9 @@
 			progressData: []
 		};
 
-		const subjects = ['spracheSprechen', 'lesen', 'schreiben', 'mathematik'];
-		const subjectNames = {
+		const subjects = ['spracheSprechen', 'lesen', 'schreiben', 'mathematik'];		const subjectNames: Record<string, string> = {
 			'spracheSprechen': 'Sprache und Sprechen',
-			'lesen': 'Lesen', 
+			'lesen': 'Lesen',
 			'schreiben': 'Schreiben',
 			'mathematik': 'Mathematik'
 		};
@@ -154,7 +153,7 @@
 
 		// Calculate progress for each assessment
 		sortedAssessments.forEach((assessment, index) => {
-			const timelinePoint = {
+			const timelinePoint: any = {
 				timestamp: assessment.timestamp,
 				date: new Date(assessment.timestamp).toLocaleDateString('de-DE'),
 				assessmentId: assessment.id,
@@ -167,7 +166,7 @@
 				let totalTasks = subjectData.length;
 				
 				if (totalTasks > 0) {
-					subjectData.forEach(task => {
+					subjectData.forEach((task: any) => {
 						const status = task.status;
 						if (status === 'ja') score += 3;
 						else if (status === 'teilweise') score += 2;
@@ -780,27 +779,29 @@
 							
 							<!-- Timeline-specific subject details -->
 							{#if progressResult.subjectTimelines}
-								{#each Object.entries(progressResult.subjectTimelines) as [subject, timeline]}
-									<div class="subject-progress">
-										<h4>{timeline.name}</h4>
-										
-										<div class="timeline-details">
-											<div class="timeline-stat">
-												<span class="timeline-trend">
-													{timeline.trend === 'improving' ? '📈' : 
-													 timeline.trend === 'declining' ? '📉' : '📊'}
-												</span>
-												<span class="timeline-change">
-													{timeline.changeAmount !== undefined ? 
-													 (timeline.changeAmount > 0 ? '+' : '') + timeline.changePercentage + '%' : 
-													 'Keine Änderung'}
-												</span>
-											</div>
-											<div class="timeline-points">
-												<strong>Datenpunkte:</strong> {timeline.dataPoints?.length || 0}
+								{#each Object.entries(progressResult.subjectTimelines) as [subject, timelineData]}
+									{#if timelineData}
+										<div class="subject-progress">
+											<h4>{timelineData.name || subject}</h4>
+											
+											<div class="timeline-details">
+												<div class="timeline-stat">
+													<span class="timeline-trend">
+														{timelineData.trend === 'improving' ? '📈' : 
+														 timelineData.trend === 'declining' ? '📉' : '📊'}
+													</span>
+													<span class="timeline-change">
+														{timelineData.changeAmount !== undefined ? 
+														 (timelineData.changeAmount > 0 ? '+' : '') + timelineData.changePercentage + '%' : 
+														 'Keine Änderung'}
+													</span>
+												</div>
+												<div class="timeline-points">
+													<strong>Datenpunkte:</strong> {timelineData.dataPoints?.length || 0}
+												</div>
 											</div>
 										</div>
-									</div>
+									{/if}
 								{/each}
 							{/if}
 						{:else}

@@ -33,7 +33,7 @@
 	
 	function generateTestData() {
 		const students = ['Max Mustermann', 'Anna Schmidt', 'Tom Weber'];
-		const assessments = [];
+		const assessments: any[] = [];
 		
 		// Generate assessments over the last 6 months
 		const now = new Date();
@@ -117,7 +117,7 @@
 			const assessments = generateTestData();
 			
 			for (const assessment of assessments) {
-				await saveAssessment(db, assessment.studentName, assessment.assessmentData, assessment.timestamp);
+				await saveAssessment(db, assessment.studentName, assessment.assessmentData);
 			}
 			
 			isDataCreated = true;

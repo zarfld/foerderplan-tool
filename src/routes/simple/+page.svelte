@@ -22,8 +22,8 @@
 			
 			step = 6; // All tests passed!
 			
-		} catch (err) {
-			error = `Step ${step} failed: ${err.message || err}`;
+		} catch (err: any) {
+			error = `Step ${step} failed: ${err?.message || err}`;
 		}
 	});
 </script>

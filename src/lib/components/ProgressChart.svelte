@@ -134,14 +134,14 @@
 	function createDatasets() {
 		if (!progressData || !progressData.subjectTimelines) return [];
 		
-		const colors = {
+		const colors: Record<string, string> = {
 			spracheSprechen: '#FF6384',
 			lesen: '#36A2EB', 
 			schreiben: '#FFCE56',
 			mathematik: '#4BC0C0'
 		};
 		
-		const subjectNames = {
+		const subjectNames: Record<string, string> = {
 			spracheSprechen: 'Sprache und Sprechen',
 			lesen: 'Lesen',
 			schreiben: 'Schreiben', 
@@ -200,22 +200,23 @@
 		<!-- Trend Summary -->
 		<div class="trend-summary">
 			<h4>Trend-Zusammenfassung</h4>
-			<div class="trend-grid">
-				{#each Object.entries(progressData.subjectTimelines) as [subject, timeline]}
+			<div class="trend-grid">			{#each Object.entries(progressData.subjectTimelines) as [subject, timelineData]}
+				{#if timelineData}
 					<div class="trend-item">
 						<div class="trend-header">
-							<span class="trend-icon">{getTrendIcon(timeline.trend)}</span>
-							<span class="subject-name">{timeline.name}</span>
+							<span class="trend-icon">{getTrendIcon(timelineData.trend)}</span>
+							<span class="subject-name">{timelineData.name || subject}</span>
 						</div>
-						<div class="trend-details" style="color: {getTrendColor(timeline.trend)}">
-							{#if timeline.changeAmount !== undefined}
-								{timeline.changeAmount > 0 ? '+' : ''}{timeline.changePercentage}%
+						<div class="trend-details" style="color: {getTrendColor(timelineData.trend)}">
+							{#if timelineData.changeAmount !== undefined}
+								{timelineData.changeAmount > 0 ? '+' : ''}{timelineData.changePercentage}%
 							{:else}
 								Keine Daten
 							{/if}
 						</div>
 					</div>
-				{/each}
+				{/if}
+			{/each}
 			</div>
 		</div>
 		

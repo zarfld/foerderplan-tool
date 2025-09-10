@@ -22,8 +22,8 @@
 			
 			status = 'PouchDB initialized successfully!';
 			
-		} catch (err) {
-			error = `Error: ${err.message || err}`;
+		} catch (err: any) {
+			error = `Error: ${err?.message || err}`;
 			status = 'Failed to initialize';
 		}
 	});

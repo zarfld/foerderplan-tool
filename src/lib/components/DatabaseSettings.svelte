@@ -60,8 +60,8 @@
 				
 				testResult = `✅ ${keysToRemove.length} Dokumente erfolgreich gelöscht`;
 				updateLocalStats();
-			} catch (error) {
-				testResult = `❌ Fehler beim Löschen: ${error.message}`;
+			} catch (error: any) {
+				testResult = `❌ Fehler beim Löschen: ${error?.message || error}`;
 			}
 		}
 	}
@@ -94,8 +94,8 @@
 			URL.revokeObjectURL(url);
 			
 			testResult = '✅ Daten erfolgreich exportiert';
-		} catch (error) {
-			testResult = `❌ Export-Fehler: ${error.message}`;
+		} catch (error: any) {
+			testResult = `❌ Export-Fehler: ${error?.message || error}`;
 		} finally {
 			isLoading = false;
 		}
@@ -121,8 +121,8 @@
 			
 			testResult = `✅ ${importCount} Dokumente erfolgreich importiert`;
 			await updateLocalStats();
-		} catch (error) {
-			testResult = `❌ Import-Fehler: ${error.message}`;
+		} catch (error: any) {
+			testResult = `❌ Import-Fehler: ${error?.message || error}`;
 		} finally {
 			isLoading = false;
 		}

@@ -4,7 +4,7 @@
 	export let params: any = undefined;
 	
 	// Mark as used to prevent warnings
-	data, params;
+	void (data && params);
 </script>
 
 <!-- This is the root layout that wraps all pages -->

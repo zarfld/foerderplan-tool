@@ -13,7 +13,7 @@
 	export let params: any = undefined;
 	
 	// Mark as used to prevent warnings
-	data, params;
+	void (data && params);
 
 	let currentData: any = {};
 	let db: any;
