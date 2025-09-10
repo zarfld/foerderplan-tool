@@ -1,25 +1,79 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { exportToPDF, saveDocument } from '$lib/utils/dataExport';
+	import { initDB, saveData, loadData } from '$lib/utils/database';
 	import FoerderplanForm from '$lib/components/FoerderplanForm.svelte';
+	import StudentManager from '$lib/components/StudentManager.svelte';
 	import foerderplanExample from '$lib/schema/foerderplan.example.json';
 
 	let data: any = foerderplanExample;
+	let db: any;
+	let currentStudent = '';
+	let saveStatus = '';
+
+	onMount(async () => {
+		db = await initDB();
+		// Try to load existing data
+		const existingData = await loadData(db, 'demo-foerderplan');
+		if (existingData) {
+			data = existingData;
+		}
+	});
 
 	function handleDataChange(event: CustomEvent) {
 		data = event.detail.data;
+		// Auto-save to local database
+		if (db) {
+			saveData(db, 'demo-foerderplan', data);
+		}
+	}
+
+	function handleStudentChanged(event: CustomEvent) {
+		const { student, data: studentData } = event.detail;
+		currentStudent = student;
+		data = studentData;
+		
+		// Also save to generic demo slot
+		if (db) {
+			saveData(db, 'demo-foerderplan', data);
+		}
+	}
+
+	function handleAssessmentSaved(event: CustomEvent) {
+		const { student } = event.detail;
+		saveStatus = `Assessment für ${student} gespeichert ✓`;
+		setTimeout(() => saveStatus = '', 3000);
 	}
 
 	async function handleSaveJSON() {
-		await saveDocument(data, 'foerderplan-demo.json');
+		if (currentStudent && Object.keys(data).length > 0) {
+			await saveDocument(data, `foerderplan-demo-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`);
+			saveStatus = `JSON für ${currentStudent} exportiert ✓`;
+		} else {
+			await saveDocument(data, 'foerderplan-demo.json');
+			saveStatus = 'JSON exportiert ✓';
+		}
+		setTimeout(() => saveStatus = '', 3000);
 	}
 
 	async function handleExportPDF() {
-		await exportToPDF(data, 'foerderplan-demo.pdf');
+		if (currentStudent && Object.keys(data).length > 0) {
+			await exportToPDF(data, `foerderplan-demo-${currentStudent}-${new Date().toISOString().split('T')[0]}.pdf`);
+			saveStatus = `PDF für ${currentStudent} exportiert ✓`;
+		} else {
+			await exportToPDF(data, 'foerderplan-demo.pdf');
+			saveStatus = 'PDF exportiert ✓';
+		}
+		setTimeout(() => saveStatus = '', 3000);
 	}
 
 	function resetToExample() {
 		data = { ...foerderplanExample };
+		if (db) {
+			saveData(db, 'demo-foerderplan', data);
+		}
+		saveStatus = 'Zurück zu Beispieldaten ✓';
+		setTimeout(() => saveStatus = '', 3000);
 	}
 </script>
 
@@ -31,7 +85,13 @@
 <main class="container">
 	<header>
 		<h1>📋 Förderplan Tool - Demo</h1>
-		<p>Example form with sample data loaded</p>
+		<p>Example form with sample data and student management</p>
+		
+		{#if saveStatus}
+			<div class="save-status" class:success={saveStatus.includes('✓')} class:error={saveStatus.includes('✗')}>
+				{saveStatus}
+			</div>
+		{/if}
 		
 		<div class="toolbar">
 			<a href="/" class="btn btn-secondary">
@@ -49,12 +109,33 @@
 		</div>
 	</header>
 
+	<!-- Student Management -->
+	{#if db}
+		<StudentManager 
+			{db} 
+			bind:currentStudent 
+			bind:currentData={data}
+			on:studentChanged={handleStudentChanged}
+			on:assessmentSaved={handleAssessmentSaved}
+		/>
+	{/if}
+
 	<div class="info-box">
 		<h3>📝 Demo Information</h3>
-		<p>This demo page loads example data from <code>foerderplan.example.json</code> to showcase the form structure and functionality. You can modify the data and export it as JSON or PDF.</p>
+		<p>This demo page showcases both the form structure and the student management functionality. You can add students, switch between them, and see how assessments are automatically saved and loaded.</p>
 	</div>
 
 	<div class="form-container">
+		{#if currentStudent}
+			<div class="current-student-indicator">
+				<h3>Demo Assessment für: <strong>{currentStudent}</strong></h3>
+			</div>
+		{:else}
+			<div class="demo-info">
+				<h3>📝 Demo-Modus</h3>
+				<p>Wählen Sie einen Schüler aus oder erstellen Sie einen neuen, um die Schülerverwaltung zu testen.</p>
+			</div>
+		{/if}
 		<FoerderplanForm {data} on:change={handleDataChange} />
 	</div>
 </main>
@@ -114,6 +195,61 @@
 		background-color: #475569;
 	}
 
+	.save-status {
+		padding: 0.5rem 1rem;
+		border-radius: 0.375rem;
+		margin: 0.5rem 0;
+		text-align: center;
+		font-weight: 500;
+		transition: all 0.3s;
+	}
+
+	.save-status.success {
+		background-color: #d1fae5;
+		color: #065f46;
+		border: 1px solid #a7f3d0;
+	}
+
+	.save-status.error {
+		background-color: #fee2e2;
+		color: #991b1b;
+		border: 1px solid #fca5a5;
+	}
+
+	.current-student-indicator {
+		background: #eff6ff;
+		border: 1px solid #93c5fd;
+		border-radius: 0.5rem;
+		padding: 1rem;
+		margin-bottom: 1rem;
+		text-align: center;
+	}
+
+	.current-student-indicator h3 {
+		margin: 0;
+		color: #1d4ed8;
+	}
+
+	.demo-info {
+		background: #f0fdf4;
+		border: 1px solid #bbf7d0;
+		border-radius: 0.5rem;
+		padding: 1rem;
+		margin-bottom: 1rem;
+		text-align: center;
+	}
+
+	.demo-info h3 {
+		margin: 0 0 0.5rem 0;
+		color: #166534;
+	}
+
+	.demo-info p {
+		margin: 0;
+		color: #166534;
+		opacity: 0.8;
+	}
+
 	.info-box {
 		background: #eff6ff;
 		border: 1px solid #bfdbfe;
@@ -127,11 +263,9 @@
 		color: #1d4ed8;
 	}
 
-	.info-box code {
-		background: #dbeafe;
-		padding: 0.25rem 0.5rem;
-		border-radius: 0.25rem;
-		font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+	.info-box p {
+		margin: 0;
+		color: #374151;
 	}
 
 	.form-container {

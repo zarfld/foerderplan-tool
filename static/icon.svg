@@ -1,0 +1,7 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#2563eb" rx="24"/>
+  <path d="M48 64h96v16H48V64zm0 24h96v16H48V88zm0 24h72v16H48v-16z" fill="white"/>
+  <circle cx="152" cy="120" r="12" fill="white"/>
+  <path d="M144 128l8 8 16-16" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="96" y="156" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Förderplan</text>
+</svg>

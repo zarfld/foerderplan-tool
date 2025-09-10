@@ -14,6 +14,18 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "dev: Start Development Server (Network)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev:network"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
 			"label": "build: Build for Production",
 			"type": "shell",
 			"command": "npm",

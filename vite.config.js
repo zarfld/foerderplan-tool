@@ -3,6 +3,12 @@ import { defineConfig } from 'vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 
 export default defineConfig({
+	define: {
+		global: 'globalThis'
+	},
+	optimizeDeps: {
+		include: ['pouchdb']
+	},
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({
