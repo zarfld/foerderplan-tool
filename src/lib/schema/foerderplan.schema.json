@@ -1,0 +1,330 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Förderplan für den Förderunterricht",
+  "description": "Digital tool for recording and comparing student progress in German educational system",
+  "properties": {
+    "student": {
+      "type": "object",
+      "title": "SchülerIn Information",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "SchülerIn",
+          "description": "Student's full name"
+        },
+        "class": {
+          "type": "string",
+          "title": "Klasse",
+          "description": "Student's class"
+        },
+        "teacher": {
+          "type": "string",
+          "title": "Klassenlehrerin",
+          "description": "Class teacher name"
+        }
+      },
+      "required": ["name", "class", "teacher"]
+    },
+    "assessmentPeriod": {
+      "type": "object",
+      "title": "Assessment Period",
+      "properties": {
+        "timeframe": {
+          "type": "string",
+          "title": "Zeitraum",
+          "description": "Assessment period timeframe"
+        }
+      },
+      "required": ["timeframe"]
+    },
+    "spracheSprechen": {
+      "type": "object",
+      "title": "Sprache und Sprechen",
+      "properties": {
+        "assessments": {
+          "type": "array",
+          "title": "Beobachtungsaufgaben",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "string",
+                "title": "Beobachtungsaufgabe/Förderansatz"
+              },
+              "status": {
+                "type": "string",
+                "title": "Bewertung",
+                "enum": ["ja", "teilweise", "nein", ""]
+              },
+              "notes": {
+                "type": "string",
+                "title": "Anmerkung"
+              }
+            }
+          },
+          "default": [
+            {"task": "Verwendet das Kind einen altersgemäßen Wortschatz?", "status": "", "notes": ""},
+            {"task": "Kann es zusammenhängend erzählen und berichten?", "status": "", "notes": ""},
+            {"task": "Beschreibt es in ganzen, zusammenhängenden Sätzen?", "status": "", "notes": ""},
+            {"task": "Versteht es Anweisungen und Aufträge an die eigene Person?", "status": "", "notes": ""},
+            {"task": "Versteht es Anweisungen und Aufträge an die Gruppe?", "status": "", "notes": ""},
+            {"task": "Zeigt es auffällige Störungen im Wortschatz?", "status": "", "notes": ""},
+            {"task": "Zeigt es auffällige Störungen in der Grammatik?", "status": "", "notes": ""},
+            {"task": "Richtige Lautbildung beim Nachsprechen von Silben, Wörtern, Sätzen?", "status": "", "notes": ""},
+            {"task": "Redefluss fließend?", "status": "", "notes": ""}
+          ]
+        }
+      }
+    },
+    "lesen": {
+      "type": "object",
+      "title": "Lesen",
+      "properties": {
+        "assessments": {
+          "type": "array",
+          "title": "Beobachtungsaufgaben",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "string",
+                "title": "Beobachtungsaufgabe/Förderansatz"
+              },
+              "status": {
+                "type": "string",
+                "title": "Bewertung",
+                "enum": ["ja", "teilweise", "nein", ""]
+              },
+              "notes": {
+                "type": "string",
+                "title": "Anmerkung"
+              }
+            }
+          },
+          "default": [
+            {"task": "Kann das Kind die bisher eingeführten Buchstaben lautieren?", "status": "", "notes": ""},
+            {"task": "Kommen immer wieder Verwechslungen vor?", "status": "", "notes": ""},
+            {"task": "Erkennt das Kind häufig gelesene Wörter wieder?", "status": "", "notes": ""},
+            {"task": "Das Kind kann Pseudowörter nicht lesen.", "status": "", "notes": ""},
+            {"task": "Das Kind buchstabiert fast alle Wörter. Der Sinn des Gelesenen wird zumeist nicht erfasst.", "status": "", "notes": ""},
+            {"task": "Das Kind liest stockend, weil es noch zu viele Wörter erlesen muss. Der Sinn des Erlesenen wird einigermaßen erfasst.", "status": "", "notes": ""},
+            {"task": "Hat das Kind Interesse am Leseunterricht", "status": "", "notes": ""},
+            {"task": "Das Kind kann wohl flüssig lesen, nicht jedoch den Textsinn erfassen.", "status": "", "notes": ""},
+            {"task": "Das Kind kann ausreichend flüssig lesen, um den Textsinn zu erfassen.", "status": "", "notes": ""}
+          ]
+        }
+      }
+    },
+    "schreiben": {
+      "type": "object",
+      "title": "Schreiben",
+      "properties": {
+        "assessments": {
+          "type": "array",
+          "title": "Beobachtungsaufgaben",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "string",
+                "title": "Beobachtungsaufgabe/Förderansatz"
+              },
+              "status": {
+                "type": "string",
+                "title": "Bewertung",
+                "enum": ["ja", "teilweise", "nein", ""]
+              },
+              "notes": {
+                "type": "string",
+                "title": "Anmerkung"
+              }
+            }
+          },
+          "default": [
+            {"task": "Kann es die Buchstaben formgerecht abschreiben?", "status": "", "notes": ""},
+            {"task": "Kann das Kind genannte Buchstaben schreiben?", "status": "", "notes": ""},
+            {"task": "Das Kind schreibt lautgetreu?", "status": "", "notes": ""},
+            {"task": "Kann es die Druckschrift in Schreibschrift umsetzen?", "status": "", "notes": ""},
+            {"task": "Gelingt das Abschreiben von Wörtern ohne Fehler?", "status": "", "notes": ""},
+            {"task": "Gelingt das Abschreiben von Texten ohne Fehler?", "status": "", "notes": ""},
+            {"task": "Kann es die wichtigsten Wörter des Grundwortschatzes auswendig schreiben?", "status": "", "notes": ""},
+            {"task": "Kann es häufig geübte Wörter richtig schreiben?", "status": "", "notes": ""},
+            {"task": "Kann es angesagte Sätze richtig schreiben?", "status": "", "notes": ""},
+            {"task": "Findet es Fehler in eigenen Texten?", "status": "", "notes": ""},
+            {"task": "Das Kind spricht beim Schreiben mit.", "status": "", "notes": ""},
+            {"task": "Formuliert es Texte so, dass ein sinnvoller Ablauf der Geschichte entsteht?", "status": "", "notes": ""},
+            {"task": "Hat das Kind Freude am Schreiben", "status": "", "notes": ""}
+          ]
+        }
+      }
+    },
+    "mathematik": {
+      "type": "object",
+      "title": "Mathematik",
+      "properties": {
+        "assessments": {
+          "type": "array",
+          "title": "Beobachtungsaufgaben",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "string",
+                "title": "Beobachtungsaufgabe/Förderansatz"
+              },
+              "status": {
+                "type": "string",
+                "title": "Bewertung",
+                "enum": ["ja", "teilweise", "nein", ""]
+              },
+              "notes": {
+                "type": "string",
+                "title": "Anmerkung"
+              }
+            }
+          },
+          "default": [
+            {"task": "Das Kind kann Mengen erfassen bis …", "status": "", "notes": ""},
+            {"task": "Beim Brettspiel (Mensch ärgere Dich nicht etc.) rückt es die gewürfelte Anzahl vor (und rückt die Spielfigur nicht eins für eins weiter)", "status": "", "notes": ""},
+            {"task": "Es hat eine Ziffernkenntnis bis …", "status": "", "notes": ""},
+            {"task": "Vor und Rückwärtszählen gelingt bis …", "status": "", "notes": ""},
+            {"task": "Zuzählen gelingt mit Veranschaulichung im Zahlenraum ............", "status": "", "notes": ""},
+            {"task": "Zuzählen gelingt ohne Veranschaulichung im Zahlenraum ...........", "status": "", "notes": ""},
+            {"task": "Rechnet das Kind noch immer zählend?", "status": "", "notes": ""},
+            {"task": "Gelingen Rechnungen mit Platzhaltern?", "status": "", "notes": ""},
+            {"task": "Treten Unsicherheiten im Kopfrechnen auf?", "status": "", "notes": ""},
+            {"task": "Kann es schriftlich addieren?", "status": "", "notes": ""},
+            {"task": "Kann es schriftlich subtrahieren?", "status": "", "notes": ""},
+            {"task": "Kann es schriftlich multiplizieren?", "status": "", "notes": ""},
+            {"task": "Kann es schriftlich dividieren?", "status": "", "notes": ""},
+            {"task": "Kann es Sachaufgaben berechnen?", "status": "", "notes": ""},
+            {"task": "Sonstige Auffälligkeiten in Mathematik:", "status": "", "notes": ""}
+          ]
+        }
+      }
+    },
+    "foerdermassnahmen": {
+      "type": "object",
+      "title": "Fördermaßnahmen",
+      "properties": {
+        "horenUnterscheiden": {
+          "type": "array",
+          "title": "Bereich: Hören und Unterscheiden",
+          "items": {
+            "type": "object",
+            "properties": {
+              "measure": {
+                "type": "string",
+                "title": "Fördermaßnahme"
+              },
+              "applied": {
+                "type": "boolean",
+                "title": "Angewendet"
+              },
+              "notes": {
+                "type": "string",
+                "title": "Bemerkungen"
+              }
+            }
+          },
+          "default": [
+            {"measure": "Reimwörter", "applied": false, "notes": ""},
+            {"measure": "Ähnlich klingende Wörter unterscheiden", "applied": false, "notes": ""},
+            {"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
+            {"measure": "Einzahl – Mehrzahl bilden", "applied": false, "notes": ""}
+          ]
+        },
+        "sprechenVerstehen": {
+          "type": "array",
+          "title": "Bereich: Sprechen und Verstehen",
+          "items": {
+            "type": "object",
+            "properties": {
+              "measure": {
+                "type": "string",
+                "title": "Fördermaßnahme"
+              },
+              "applied": {
+                "type": "boolean",
+                "title": "Angewendet"
+              },
+              "notes": {
+                "type": "string",
+                "title": "Bemerkungen"
+              }
+            }
+          },
+          "default": [
+            {"measure": "Bilder erkennen und darüber berichten", "applied": false, "notes": ""},
+            {"measure": "Berufe raten", "applied": false, "notes": ""},
+            {"measure": "Zeichen zuordnen", "applied": false, "notes": ""},
+            {"measure": "Geschichte erzählen", "applied": false, "notes": ""},
+            {"measure": "Nach Oberbegriffen ordnen", "applied": false, "notes": ""},
+            {"measure": "Bildergeschichte erzählen", "applied": false, "notes": ""},
+            {"measure": "Präpositionen auf, unter, rechts und links", "applied": false, "notes": ""},
+            {"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
+            {"measure": "Bilder beschreiben", "applied": false, "notes": ""},
+            {"measure": "Gefühle zuordnen", "applied": false, "notes": ""},
+            {"measure": "Präposition zwischen", "applied": false, "notes": ""}
+          ]
+        },
+        "optischeWahrnehmung": {
+          "type": "array",
+          "title": "Bereich: Optische Wahrnehmung",
+          "items": {
+            "type": "object",
+            "properties": {
+              "measure": {
+                "type": "string",
+                "title": "Fördermaßnahme"
+              },
+              "applied": {
+                "type": "boolean",
+                "title": "Angewendet"
+              },
+              "notes": {
+                "type": "string",
+                "title": "Bemerkungen"
+              }
+            }
+          },
+          "default": [
+            {"measure": "Bilder vergleichen", "applied": false, "notes": ""},
+            {"measure": "Fehlendes ergänzen", "applied": false, "notes": ""},
+            {"measure": "Rechts-links-Vergleich", "applied": false, "notes": ""},
+            {"measure": "Formen und Mengen erkennen", "applied": false, "notes": ""}
+          ]
+        },
+        "mathematikFoerderung": {
+          "type": "array",
+          "title": "Fördermaßnahmen Mathematik",
+          "items": {
+            "type": "object",
+            "properties": {
+              "measure": {
+                "type": "string",
+                "title": "Fördermaßnahme"
+              },
+              "applied": {
+                "type": "boolean",
+                "title": "Angewendet"
+              },
+              "notes": {
+                "type": "string",
+                "title": "Bemerkungen"
+              }
+            }
+          },
+          "default": [
+            {"measure": "Mengen legen", "applied": false, "notes": ""},
+            {"measure": "Mengen vergleichen (weniger-mehr)", "applied": false, "notes": ""},
+            {"measure": "Mengen zählen", "applied": false, "notes": ""},
+            {"measure": "Sachaufgaben", "applied": false, "notes": ""}
+          ]
+        }
+      }
+    }
+  },
+  "required": ["student", "assessmentPeriod"]
+}

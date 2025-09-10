@@ -1,0 +1,62 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "dev: Start Development Server",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "build: Build for Production",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "build"],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "preview: Preview Production Build",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "preview"],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": [],
+			"dependsOn": "build: Build for Production"
+		},
+		{
+			"label": "check: Type Check",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "check"],
+			"group": "test",
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "lint: Run Linter",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "lint"],
+			"group": "test",
+			"problemMatcher": ["$eslint-stylish"]
+		},
+		{
+			"label": "format: Format Code",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "format"],
+			"group": "build",
+			"problemMatcher": []
+		}
+	]
+}
