@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let data;
+	export let data: any;
+	export let params: any = undefined; // Accept params prop to prevent warning
+	
+	// Mark as used to prevent warnings
+	params;
 </script>
 
 <svelte:head>

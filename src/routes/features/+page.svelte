@@ -5,6 +5,13 @@
 	import AssessmentAnalysis from '$lib/components/AssessmentAnalysis.svelte';
 	import FoerderplanForm from '$lib/components/FoerderplanForm.svelte';
 
+	// Accept props from page load function
+	export let data: any;
+	export let params: any = undefined; // Accept params prop to prevent warning
+	
+	// Mark as used to prevent warnings
+	data, params;
+
 	let db: any;
 	let currentStudent = '';
 	let currentData: any = {};

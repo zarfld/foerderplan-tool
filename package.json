@@ -4,20 +4,26 @@
   "private": true,
   "scripts": {
     "build": "vite build",
+    "build:pwa": "node scripts/build-pwa.bat",
     "dev": "vite dev --host",
     "dev:network": "vite dev --host 0.0.0.0 --port 5173",
     "preview": "vite preview",
+    "preview:network": "vite preview --host 0.0.0.0 --port 4173",
     "test": "npm run test:integration && npm run test:unit",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
     "test:integration": "playwright test",
-    "test:unit": "vitest"
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:pwa": "playwright test --grep=\"PWA\"",
+    "test:android": "playwright test --project=\"Mobile Chrome\""
   },
   "devDependencies": {
     "@playwright/test": "^1.28.1",
     "@sveltejs/adapter-auto": "^3.0.0",
+    "@sveltejs/adapter-static": "^3.0.9",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
     "@types/eslint": "^9.6.0",
@@ -27,6 +33,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-svelte": "^2.36.0",
     "globals": "^15.0.0",
+    "jsdom": "^26.1.0",
     "prettier": "^3.1.1",
     "prettier-plugin-svelte": "^3.1.2",
     "svelte": "^4.2.7",
@@ -39,6 +46,7 @@
   "type": "module",
   "dependencies": {
     "@vite-pwa/sveltekit": "^0.4.0",
+    "chart.js": "^4.5.0",
     "jspdf": "^2.5.1",
     "pouchdb": "^8.0.1",
     "pouchdb-adapter-idb": "^8.0.1",

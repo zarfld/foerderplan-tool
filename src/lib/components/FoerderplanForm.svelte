@@ -19,6 +19,77 @@
 		if (!currentData.schreiben) currentData.schreiben = { assessments: [] };
 		if (!currentData.mathematik) currentData.mathematik = { assessments: [] };
 		if (!currentData.foerdermassnahmen) currentData.foerdermassnahmen = {};
+		
+		// Initialize Fördermaßnahmen sub-sections
+		if (!currentData.foerdermassnahmen.horenUnterscheiden) {
+			currentData.foerdermassnahmen.horenUnterscheiden = [
+				{"measure": "Reimwörter", "applied": false, "notes": ""},
+				{"measure": "Ähnlich klingende Wörter unterscheiden", "applied": false, "notes": ""},
+				{"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
+				{"measure": "Einzahl – Mehrzahl bilden", "applied": false, "notes": ""}
+			];
+		}
+		
+		if (!currentData.foerdermassnahmen.sprechenVerstehen) {
+			currentData.foerdermassnahmen.sprechenVerstehen = [
+				{"measure": "Bilder erkennen und darüber berichten", "applied": false, "notes": ""},
+				{"measure": "Berufe raten", "applied": false, "notes": ""},
+				{"measure": "Zeichen zuordnen", "applied": false, "notes": ""},
+				{"measure": "Geschichte erzählen", "applied": false, "notes": ""},
+				{"measure": "Nach Oberbegriffen ordnen", "applied": false, "notes": ""},
+				{"measure": "Bildergeschichte erzählen", "applied": false, "notes": ""},
+				{"measure": "Präpositionen auf, unter, rechts und links", "applied": false, "notes": ""},
+				{"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
+				{"measure": "Bilder beschreiben", "applied": false, "notes": ""},
+				{"measure": "Gefühle zuordnen", "applied": false, "notes": ""},
+				{"measure": "Präposition zwischen", "applied": false, "notes": ""}
+			];
+		}
+		
+		if (!currentData.foerdermassnahmen.lesenVerstehen) {
+			currentData.foerdermassnahmen.lesenVerstehen = [
+				{"measure": "Lesestrategien", "applied": false, "notes": ""},
+				{"measure": "Textverständnis", "applied": false, "notes": ""},
+				{"measure": "Leseflüssigkeit", "applied": false, "notes": ""},
+				{"measure": "Phonologisches Bewusstsein", "applied": false, "notes": ""}
+			];
+		}
+		
+		if (!currentData.foerdermassnahmen.schreibenRechtschreibung) {
+			currentData.foerdermassnahmen.schreibenRechtschreibung = [
+				{"measure": "Rechtschreibstrategien", "applied": false, "notes": ""},
+				{"measure": "Wortaufbau", "applied": false, "notes": ""},
+				{"measure": "Textproduktion", "applied": false, "notes": ""},
+				{"measure": "Korrekturlesen", "applied": false, "notes": ""}
+			];
+		}
+		
+		if (!currentData.foerdermassnahmen.mathematik) {
+			currentData.foerdermassnahmen.mathematik = [
+				{"measure": "Zahlenbegriff", "applied": false, "notes": ""},
+				{"measure": "Grundrechenarten", "applied": false, "notes": ""},
+				{"measure": "Sachaufgaben", "applied": false, "notes": ""},
+				{"measure": "Geometrie", "applied": false, "notes": ""}
+			];
+		}
+		
+		if (!currentData.foerdermassnahmen.optischeWahrnehmung) {
+			currentData.foerdermassnahmen.optischeWahrnehmung = [
+				{"measure": "Bilder vergleichen", "applied": false, "notes": ""},
+				{"measure": "Fehlendes ergänzen", "applied": false, "notes": ""},
+				{"measure": "Rechts-links-Vergleich", "applied": false, "notes": ""},
+				{"measure": "Formen und Mengen erkennen", "applied": false, "notes": ""}
+			];
+		}
+		
+		if (!currentData.foerdermassnahmen.mathematikFoerderung) {
+			currentData.foerdermassnahmen.mathematikFoerderung = [
+				{"measure": "Mengen legen", "applied": false, "notes": ""},
+				{"measure": "Mengen vergleichen (weniger-mehr)", "applied": false, "notes": ""},
+				{"measure": "Mengen zählen", "applied": false, "notes": ""},
+				{"measure": "Sachaufgaben", "applied": false, "notes": ""}
+			];
+		}
 
 		// Initialize assessments with default tasks if empty
 		if (currentData.spracheSprechen.assessments.length === 0) {
@@ -449,19 +520,10 @@
 	<section class="form-section">
 		<h2>🎯 Fördermaßnahmen</h2>
 		
-		{#if !data.foerdermassnahmen.horenUnterscheiden}
-			{(data.foerdermassnahmen.horenUnterscheiden = [
-				{"measure": "Reimwörter", "applied": false, "notes": ""},
-				{"measure": "Ähnlich klingende Wörter unterscheiden", "applied": false, "notes": ""},
-				{"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
-				{"measure": "Einzahl – Mehrzahl bilden", "applied": false, "notes": ""}
-			], "")}
-		{/if}
-		
 		<div class="measures-section">
 			<h3>👂 Bereich: Hören und Unterscheiden</h3>
 			<ul class="measures-list">
-				{#each data.foerdermassnahmen.horenUnterscheiden as measure, index}
+				{#each (data.foerdermassnahmen?.horenUnterscheiden || []) as measure, index}
 					<li class="measure-item">
 						<label class="checkbox-label">
 							<input
@@ -483,26 +545,11 @@
 			</ul>
 		</div>
 
-		{#if !data.foerdermassnahmen.sprechenVerstehen}
-			{(data.foerdermassnahmen.sprechenVerstehen = [
-				{"measure": "Bilder erkennen und darüber berichten", "applied": false, "notes": ""},
-				{"measure": "Berufe raten", "applied": false, "notes": ""},
-				{"measure": "Zeichen zuordnen", "applied": false, "notes": ""},
-				{"measure": "Geschichte erzählen", "applied": false, "notes": ""},
-				{"measure": "Nach Oberbegriffen ordnen", "applied": false, "notes": ""},
-				{"measure": "Bildergeschichte erzählen", "applied": false, "notes": ""},
-				{"measure": "Präpositionen auf, unter, rechts und links", "applied": false, "notes": ""},
-				{"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
-				{"measure": "Bilder beschreiben", "applied": false, "notes": ""},
-				{"measure": "Gefühle zuordnen", "applied": false, "notes": ""},
-				{"measure": "Präposition zwischen", "applied": false, "notes": ""}
-			], "")}
-		{/if}
 		
 		<div class="measures-section">
 			<h3>💬 Bereich: Sprechen und Verstehen</h3>
 			<ul class="measures-list">
-				{#each data.foerdermassnahmen.sprechenVerstehen as measure, index}
+				{#each (data.foerdermassnahmen?.sprechenVerstehen || []) as measure, index}
 					<li class="measure-item">
 						<label class="checkbox-label">
 							<input
@@ -524,19 +571,11 @@
 			</ul>
 		</div>
 
-		{#if !data.foerdermassnahmen.optischeWahrnehmung}
-			{(data.foerdermassnahmen.optischeWahrnehmung = [
-				{"measure": "Bilder vergleichen", "applied": false, "notes": ""},
-				{"measure": "Fehlendes ergänzen", "applied": false, "notes": ""},
-				{"measure": "Rechts-links-Vergleich", "applied": false, "notes": ""},
-				{"measure": "Formen und Mengen erkennen", "applied": false, "notes": ""}
-			], "")}
-		{/if}
 		
 		<div class="measures-section">
 			<h3>👁️ Bereich: Optische Wahrnehmung</h3>
 			<ul class="measures-list">
-				{#each data.foerdermassnahmen.optischeWahrnehmung as measure, index}
+				{#each (data.foerdermassnahmen?.optischeWahrnehmung || []) as measure, index}
 					<li class="measure-item">
 						<label class="checkbox-label">
 							<input
@@ -558,19 +597,11 @@
 			</ul>
 		</div>
 
-		{#if !data.foerdermassnahmen.mathematikFoerderung}
-			{(data.foerdermassnahmen.mathematikFoerderung = [
-				{"measure": "Mengen legen", "applied": false, "notes": ""},
-				{"measure": "Mengen vergleichen (weniger-mehr)", "applied": false, "notes": ""},
-				{"measure": "Mengen zählen", "applied": false, "notes": ""},
-				{"measure": "Sachaufgaben", "applied": false, "notes": ""}
-			], "")}
-		{/if}
 		
 		<div class="measures-section">
 			<h3>🔢 Fördermaßnahmen Mathematik</h3>
 			<ul class="measures-list">
-				{#each data.foerdermassnahmen.mathematikFoerderung as measure, index}
+				{#each (data.foerdermassnahmen?.mathematikFoerderung || []) as measure, index}
 					<li class="measure-item">
 						<label class="checkbox-label">
 							<input

@@ -8,7 +8,14 @@
 	import AssessmentAnalysis from '$lib/components/AssessmentAnalysis.svelte';
 	import AssessmentHistory from '$lib/components/AssessmentHistory.svelte';
 
-	let data: any = {};
+	// Accept props to prevent warnings
+	export let data: any = undefined;
+	export let params: any = undefined;
+	
+	// Mark as used to prevent warnings
+	data, params;
+
+	let currentData: any = {};
 	let db: any;
 	let currentStudent = '';
 	let showAnalysis = false;
@@ -24,7 +31,7 @@
 			// Try to load existing data
 			const existingData = await loadData(db, 'current-foerderplan');
 			if (existingData) {
-				data = existingData;
+				currentData = existingData;
 			}
 		} catch (error) {
 			console.error('Error initializing app:', error);
@@ -62,24 +69,24 @@
 	});
 
 	function handleDataChange(event: CustomEvent) {
-		data = event.detail.data;
+		currentData = event.detail.data;
 		hasUnsavedChanges = true;
 		
 		// Auto-save to student-specific slot with versioning
 		if (db && currentStudent) {
 			// Save as student-specific assessment with timestamp
 			const timestamp = new Date().toISOString();
-			saveAssessment(db, currentStudent, data);
+			saveAssessment(db, currentStudent, currentData);
 			console.log(`Auto-saved assessment for ${currentStudent} at ${timestamp}`);
 			
 			// Also save to general current slot for continuity
-			saveData(db, 'current-foerderplan', data);
-			lastSavedData = { ...data };
+			saveData(db, 'current-foerderplan', currentData);
+			lastSavedData = { ...currentData };
 			hasUnsavedChanges = false;
 		} else if (db) {
 			// Fallback for when no student is selected
-			saveData(db, 'current-foerderplan', data);
-			lastSavedData = { ...data };
+			saveData(db, 'current-foerderplan', currentData);
+			lastSavedData = { ...currentData };
 			hasUnsavedChanges = false;
 		}
 	}
@@ -89,16 +96,16 @@
 		console.log('Main page handleStudentChanged:', student, studentData);
 		currentStudent = student;
 		// Force complete data replacement to trigger reactivity
-		data = {};  // Clear first
+		currentData = {};  // Clear first
 		setTimeout(() => {
-			data = { ...studentData }; // Then set new data
-			lastSavedData = { ...data };
+			currentData = { ...studentData }; // Then set new data
+			lastSavedData = { ...currentData };
 			hasUnsavedChanges = false;
-			console.log('Main page received student change:', student, data);
+			console.log('Main page received student change:', student, currentData);
 			
 			// Also save to general current slot for continuity
 			if (db) {
-				saveData(db, 'current-foerderplan', data);
+				saveData(db, 'current-foerderplan', currentData);
 			}
 		}, 10);
 	}
@@ -106,8 +113,8 @@
 	function handleAssessmentLoaded(event: CustomEvent) {
 		const { student, data: assessmentData, timestamp } = event.detail;
 		currentStudent = student;
-		data = { ...assessmentData };
-		lastSavedData = { ...data };
+		currentData = { ...assessmentData };
+		lastSavedData = { ...currentData };
 		hasUnsavedChanges = false;
 		console.log(`Loaded assessment from ${timestamp} for ${student}`);
 	}
@@ -123,13 +130,13 @@
 			// Save to database first
 			try {
 				await saveAssessment(db, currentStudent, data);
-				await saveDocument(data, `foerderplan-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`);
+				await saveDocument(currentData, `foerderplan-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`);
 				saveStatus = `JSON für ${currentStudent} exportiert ✓`;
 			} catch (error) {
 				saveStatus = 'Fehler beim Speichern ✗';
 			}
 		} else {
-			await saveDocument(data, 'foerderplan.json');
+			await saveDocument(currentData, 'foerderplan.json');
 			saveStatus = 'JSON exportiert ✓';
 		}
 		setTimeout(() => saveStatus = '', 3000);
@@ -146,16 +153,16 @@
 				saveStatus = 'Fehler beim PDF Export ✗';
 			}
 		} else {
-			await exportToPDF(data, 'foerderplan.pdf');
+			await exportToPDF(currentData, 'foerderplan.pdf');
 			saveStatus = 'PDF exportiert ✓';
 		}
 		setTimeout(() => saveStatus = '', 3000);
 	}
 
 	function handleNewDocument() {
-		data = {};
+		currentData = {};
 		if (db) {
-			saveData(db, 'current-foerderplan', data);
+			saveData(db, 'current-foerderplan', currentData);
 		}
 		saveStatus = 'Neues Dokument erstellt ✓';
 		setTimeout(() => saveStatus = '', 3000);
@@ -173,8 +180,18 @@
 
 <main class="container">
 	<header>
-		<h1>📋 Förderplan Tool</h1>
-		<p>Digital tool for recording and comparing student progress</p>
+		<div class="header-top">
+			<div class="title-section">
+				<h1>📋 Förderplan Tool</h1>
+				<p>Digital tool for recording and comparing student progress</p>
+			</div>
+			
+			<nav class="header-nav">
+				<a href="/demo" class="nav-link">📊 Demo</a>
+				<a href="/timeline-test" class="nav-link">📈 Timeline Test</a>
+				<a href="/settings" class="nav-link">⚙️ Einstellungen</a>
+			</nav>
+		</div>
 		
 		{#if saveStatus}
 			<div class="save-status" class:success={saveStatus.includes('✓')} class:error={saveStatus.includes('✗')}>
@@ -206,7 +223,7 @@
 		<StudentManager 
 			{db} 
 			bind:currentStudent 
-			bind:currentData={data}
+			bind:currentData={currentData}
 			{hasUnsavedChanges}
 			on:studentChanged={handleStudentChanged}
 			on:assessmentSaved={handleAssessmentSaved}
@@ -227,7 +244,7 @@
 				</div>
 			{/if}
 			{#key currentStudent + JSON.stringify(data?.student?.name)}
-				<FoerderplanForm {data} on:change={handleDataChange} />
+				<FoerderplanForm data={currentData} on:change={handleDataChange} />
 			{/key}
 		</div>
 	{:else}
@@ -247,6 +264,38 @@
 	header {
 		text-align: center;
 		margin-bottom: 2rem;
+	}
+	
+	.header-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+	}
+	
+	.title-section {
+		text-align: left;
+	}
+	
+	.header-nav {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+	}
+	
+	.nav-link {
+		color: #3b82f6;
+		text-decoration: none;
+		padding: 0.5rem 1rem;
+		border-radius: 6px;
+		transition: background-color 0.2s;
+		font-weight: 500;
+		font-size: 0.9rem;
+	}
+	
+	.nav-link:hover {
+		background-color: #f3f4f6;
+		text-decoration: none;
 	}
 
 	h1 {
@@ -407,6 +456,20 @@
 	@media (max-width: 768px) {
 		.container {
 			padding: 1rem;
+		}
+		
+		.header-top {
+			flex-direction: column;
+			gap: 1rem;
+		}
+		
+		.title-section {
+			text-align: center;
+		}
+		
+		.header-nav {
+			flex-wrap: wrap;
+			justify-content: center;
 		}
 		
 		.toolbar {

@@ -48,6 +48,80 @@ npm run dev
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start development server |
+| `npm run dev:network` | Start dev server accessible from network (Android) |
+| `npm run build` | Build for production |
+| `npm run build:pwa` | Build PWA with validation (Windows) |
+| `npm run preview` | Preview production build |
+| `npm run preview:network` | Preview build accessible from network |
+| `npm run test` | Run all tests |
+| `npm run test:unit` | Run unit tests |
+| `npm run test:integration` | Run Playwright integration tests |
+| `npm run test:pwa` | Run PWA-specific tests |
+| `npm run test:android` | Run mobile/Android tests |
+| `npm run check` | Type checking |
+| `npm run lint` | Run linter |
+| `npm run format` | Format code |
+
+## 📱 PWA Deployment
+
+### Windows 10 as Web Server for Android Devices
+
+This setup allows your Windows 10 machine to serve the PWA to Android devices on the same network:
+
+1. **Development Mode** (with hot reload):
+   ```bash
+   npm run dev:network
+   ```
+   Access from Android: `http://[YOUR-PC-IP]:5173`
+
+2. **Production Preview**:
+   ```bash
+   npm run build
+   npm run preview:network
+   ```
+   Access from Android: `http://[YOUR-PC-IP]:4173`
+
+3. **Build PWA with Validation**:
+   ```bash
+   npm run build:pwa
+   ```
+   This validates PWA requirements and shows network access info.
+
+### GitHub Pages Deployment (CI/CD)
+
+The app automatically deploys to GitHub Pages when pushing to main branch:
+
+1. **Push to main branch**:
+   ```bash
+   git push origin main
+   ```
+
+2. **GitHub Actions** will:
+   - Run tests (unit + integration)
+   - Build PWA
+   - Validate PWA manifest and icons
+   - Deploy to GitHub Pages
+   - Run Android PWA tests
+
+3. **Access deployed app**:
+   - URL: `https://[username].github.io/foerderplan-tool`
+   - Installable as PWA on Android devices
+
+### Android Installation
+
+1. **Open in Chrome** on Android device
+2. **Tap "Add to Home screen"** when prompted
+3. **App will install** like a native app
+4. **Works offline** after first load
+
+### PWA Features Tested
+
+- ✅ Offline functionality
+- ✅ App installation
+- ✅ Service worker registration
+- ✅ Responsive design
+- ✅ Push notifications (future)
+- ✅ Background sync (future)
 | `npm run build` | Build for production |
 | `npm run preview` | Preview production build |
 | `npm run lint` | Run ESLint |

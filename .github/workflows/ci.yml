@@ -33,11 +33,30 @@ jobs:
     - name: Run type checking
       run: npm run check
       
-    - name: Run tests
+    - name: Run unit tests
       run: npm run test:unit
       
     - name: Build application
       run: npm run build
+      
+    - name: Validate PWA manifest
+      run: |
+        if [ ! -f "build/manifest.json" ]; then
+          echo "PWA manifest not found in build!"
+          exit 1
+        fi
+        echo "✅ PWA manifest found"
+        
+    - name: Check PWA icons
+      run: |
+        if [ ! -f "build/icon-192.png" ] || [ ! -f "build/icon-512.png" ]; then
+          echo "PWA icons not found in build!"
+          exit 1
+        fi
+        echo "✅ PWA icons found"
+        
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps
       
     - name: Run integration tests
       run: npm run test:integration
@@ -47,6 +66,16 @@ jobs:
       with:
         name: build-files-${{ matrix.node-version }}
         path: build/
+        retention-days: 7
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-results-${{ matrix.node-version }}
+        path: |
+          test-results/
+          playwright-report/
         retention-days: 7
 
   deploy:
@@ -67,8 +96,22 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Build application
+    - name: Build application for production
       run: npm run build
+      env:
+        NODE_ENV: production
+        
+    - name: Generate PWA report
+      run: |
+        echo "📱 PWA Build Report" > pwa-report.md
+        echo "==================" >> pwa-report.md
+        echo "" >> pwa-report.md
+        echo "✅ Build completed successfully" >> pwa-report.md
+        echo "📄 Manifest: $(ls -la build/manifest.json 2>/dev/null && echo 'Found' || echo 'Missing')" >> pwa-report.md
+        echo "🖼️ Icons: $(ls build/icon-*.png 2>/dev/null | wc -l) found" >> pwa-report.md
+        echo "📦 Build size: $(du -sh build/ | cut -f1)" >> pwa-report.md
+        echo "🕐 Build time: $(date)" >> pwa-report.md
+        cat pwa-report.md
       
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
@@ -76,3 +119,4 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build
+        cname: foerderplan-tool.github.io

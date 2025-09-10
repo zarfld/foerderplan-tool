@@ -309,10 +309,32 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 		};
 	}
 
+	// Remove duplicates by student (keep only the latest assessment per student)
+	const uniqueAssessments = new Map<string, any>();
+	assessments.forEach(assessment => {
+		const studentName = assessment.studentName;
+		const existing = uniqueAssessments.get(studentName);
+		
+		if (!existing || new Date(assessment.timestamp) > new Date(existing.timestamp)) {
+			uniqueAssessments.set(studentName, assessment);
+		}
+	});
+	
+	const finalAssessments = Array.from(uniqueAssessments.values());
+	
+	if (finalAssessments.length < 2) {
+		return { 
+			error: 'Mindestens zwei verschiedene Schüler sind für einen Vergleich erforderlich',
+			assessments: finalAssessments.length,
+			uniqueStudents: finalAssessments.map(a => a.studentName)
+		};
+	}
+
 	const comparison: any = {
-		students: assessments.map(a => a.studentName),
-		timestamps: assessments.map(a => a.timestamp),
-		assessmentCount: assessments.length,
+		students: finalAssessments.map(a => a.studentName),
+		timestamps: finalAssessments.map(a => a.timestamp),
+		assessmentCount: finalAssessments.length,
+		uniqueStudentCount: finalAssessments.length,
 		commonIssues: {},
 		progressAreas: {},
 		subjectComparison: {},
@@ -328,7 +350,7 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 			mixedResults: []
 		};
 
-		const subjectData = assessments.map(a => a.assessmentData[subject]?.assessments || []);
+		const subjectData = finalAssessments.map(a => a.assessmentData[subject]?.assessments || []);
 		
 		// Find patterns in each task
 		if (subjectData.length > 0 && subjectData[0].length > 0) {
@@ -344,13 +366,14 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 					task: task.task,
 					responses,
 					notes: notes.filter(n => n.trim() !== ''),
-					statistics: { jaCount, teilweiseCount, neinCount }
+					statistics: { jaCount, teilweiseCount, neinCount },
+					students: finalAssessments.map(a => a.studentName)
 				};
 
-				// Categorize based on response patterns
-				if (neinCount >= Math.ceil(assessments.length * 0.6)) {
+				// Categorize based on response patterns (use finalAssessments length)
+				if (neinCount >= Math.ceil(finalAssessments.length * 0.6)) {
 					comparison.subjectComparison[subject].commonProblems.push(analysisItem);
-				} else if (jaCount >= Math.ceil(assessments.length * 0.6)) {
+				} else if (jaCount >= Math.ceil(finalAssessments.length * 0.6)) {
 					comparison.subjectComparison[subject].strongAreas.push(analysisItem);
 				} else {
 					comparison.subjectComparison[subject].mixedResults.push(analysisItem);
@@ -360,7 +383,7 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 	});
 
 	// Analyze Fördermaßnahmen
-	if (assessments[0].assessmentData.foerdermassnahmen) {
+	if (finalAssessments[0].assessmentData.foerdermassnahmen) {
 		const measureAreas = ['horenUnterscheiden', 'sprechenVerstehen', 'optischeWahrnehmung', 'mathematikFoerderung'];
 		
 		measureAreas.forEach(area => {
@@ -370,7 +393,7 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 				effectiveNotes: []
 			};
 
-			const measureData = assessments.map(a => a.assessmentData.foerdermassnahmen?.[area] || []);
+			const measureData = finalAssessments.map(a => a.assessmentData.foerdermassnahmen?.[area] || []);
 			
 			if (measureData.length > 0 && measureData[0].length > 0) {
 				measureData[0].forEach((measure: any, measureIndex: number) => {
@@ -381,11 +404,12 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 					const analysisItem = {
 						measure: measure.measure,
 						appliedCount,
-						percentage: Math.round((appliedCount / assessments.length) * 100),
-						notes
+						percentage: Math.round((appliedCount / finalAssessments.length) * 100),
+						notes,
+						students: finalAssessments.map(a => a.studentName)
 					};
 
-					if (appliedCount >= Math.ceil(assessments.length * 0.6)) {
+					if (appliedCount >= Math.ceil(finalAssessments.length * 0.6)) {
 						comparison.foerdermassnahmenComparison[area].commonlyApplied.push(analysisItem);
 					} else {
 						comparison.foerdermassnahmenComparison[area].rarelyApplied.push(analysisItem);
