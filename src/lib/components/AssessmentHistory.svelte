@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { loadAllAssessments } from '$lib/utils/database';
-	
+
 	export let db: any;
 	export let currentStudent: string = '';
-	
+
 	const dispatch = createEventDispatcher();
-	
+
 	let assessmentHistory: any[] = [];
 	let loading = false;
 	let showHistory = false;
-	
+
 	// Load assessment history for current student
 	async function loadStudentHistory() {
 		if (!db || !currentStudent) return;
-		
+
 		loading = true;
 		try {
 			assessmentHistory = await loadAllAssessments(db, currentStudent);
@@ -25,7 +25,7 @@
 			loading = false;
 		}
 	}
-	
+
 	// Load a specific assessment
 	function loadAssessment(assessment: any) {
 		dispatch('loadAssessment', {
@@ -35,7 +35,7 @@
 		});
 		showHistory = false;
 	}
-	
+
 	// Format date for display
 	function formatDate(timestamp: string): string {
 		const date = new Date(timestamp);
@@ -47,7 +47,7 @@
 			minute: '2-digit'
 		});
 	}
-	
+
 	// Calculate days ago
 	function daysAgo(timestamp: string): number {
 		const now = new Date();
@@ -60,32 +60,25 @@
 <div class="assessment-history">
 	{#if currentStudent}
 		<div class="history-controls">
-			<button 
-				class="btn btn-secondary"
-				on:click={loadStudentHistory}
-				disabled={loading}
-			>
+			<button class="btn btn-secondary" on:click={loadStudentHistory} disabled={loading}>
 				{#if loading}
 					⏳ Lade Historie...
 				{:else}
 					📊 Assessment-Historie für {currentStudent}
 				{/if}
 			</button>
-			
+
 			{#if showHistory}
-				<button 
-					class="btn btn-sm btn-outline"
-					on:click={() => showHistory = false}
-				>
+				<button class="btn btn-sm btn-outline" on:click={() => (showHistory = false)}>
 					❌ Schließen
 				</button>
 			{/if}
 		</div>
-		
+
 		{#if showHistory}
 			<div class="history-panel">
 				<h3>📈 Assessment-Historie für {currentStudent}</h3>
-				
+
 				{#if assessmentHistory.length === 0}
 					<p class="no-history">Noch keine Assessment-Historie für diesen Schüler vorhanden.</p>
 				{:else}
@@ -109,20 +102,20 @@
 										<span class="latest-badge">📌 Aktuell</span>
 									{/if}
 								</div>
-								
+
 								<div class="assessment-preview">
 									<p>
-										<strong>Zeitraum:</strong> 
+										<strong>Zeitraum:</strong>
 										{assessment.assessmentData?.assessmentPeriod?.timeframe || 'Nicht angegeben'}
 									</p>
 									<p>
-										<strong>Klasse:</strong> 
+										<strong>Klasse:</strong>
 										{assessment.assessmentData?.student?.class || 'Nicht angegeben'}
 									</p>
 								</div>
-								
+
 								<div class="history-actions">
-									<button 
+									<button
 										class="btn btn-sm btn-primary"
 										on:click={() => loadAssessment(assessment)}
 									>
@@ -136,7 +129,9 @@
 			</div>
 		{/if}
 	{:else}
-		<p class="no-student">Bitte wählen Sie zuerst einen Schüler aus, um die Assessment-Historie anzuzeigen.</p>
+		<p class="no-student">
+			Bitte wählen Sie zuerst einen Schüler aus, um die Assessment-Historie anzuzeigen.
+		</p>
 	{/if}
 </div>
 
@@ -167,7 +162,8 @@
 		color: #1e293b;
 	}
 
-	.no-history, .no-student {
+	.no-history,
+	.no-student {
 		color: #64748b;
 		font-style: italic;
 		text-align: center;
@@ -296,13 +292,13 @@
 			flex-direction: column;
 			align-items: stretch;
 		}
-		
+
 		.history-header {
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 0.5rem;
 		}
-		
+
 		.history-panel {
 			padding: 1rem;
 		}

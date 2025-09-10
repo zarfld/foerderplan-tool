@@ -5,6 +5,7 @@
 This is a Progressive Web App (PWA) built with SvelteKit and TypeScript for teachers to create and manage student progress reports (Förderplan).
 
 ## Project Structure
+
 - **Framework**: SvelteKit with TypeScript
 - **Forms**: JSONForms for dynamic form rendering
 - **Database**: PouchDB for offline-first storage with CouchDB sync
@@ -12,6 +13,7 @@ This is a Progressive Web App (PWA) built with SvelteKit and TypeScript for teac
 - **PWA**: @vite-pwa/sveltekit for PWA functionality
 
 ## Key Features
+
 - Offline-first data storage using PouchDB
 - Sync with CouchDB server
 - JSON Schema-based form validation
@@ -20,6 +22,7 @@ This is a Progressive Web App (PWA) built with SvelteKit and TypeScript for teac
 - Responsive design
 
 ## Development Guidelines
+
 - Use TypeScript for all new code
 - Follow SvelteKit conventions for routing and components
 - Maintain schema-first approach for forms
@@ -28,6 +31,7 @@ This is a Progressive Web App (PWA) built with SvelteKit and TypeScript for teac
 - Follow accessibility best practices
 
 ## Important Files
+
 - `/src/lib/schema/` - JSON schemas for form structure
 - `/src/lib/utils/database.ts` - PouchDB database operations
 - `/src/lib/utils/dataExport.ts` - Export functionality
@@ -35,6 +39,7 @@ This is a Progressive Web App (PWA) built with SvelteKit and TypeScript for teac
 - `/src/routes/demo/+page.svelte` - Demo page with example data
 
 ## Dependencies
+
 - @jsonforms/svelte - Form rendering
 - pouchdb - Local database
 - jspdf - PDF generation

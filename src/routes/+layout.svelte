@@ -2,7 +2,7 @@
 	// Accept any props to avoid warnings - mark as unused
 	export const data: any = undefined;
 	export const params: any = undefined;
-	
+
 	// Mark as used to prevent warnings
 	void (data && params);
 </script>

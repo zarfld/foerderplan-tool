@@ -5,10 +5,7 @@
 			"label": "dev: Start Development Server",
 			"type": "shell",
 			"command": "npm",
-			"args": [
-				"run",
-				"dev"
-			],
+			"args": ["run", "dev"],
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": []
@@ -17,10 +14,7 @@
 			"label": "dev: Start Development Server (Network)",
 			"type": "shell",
 			"command": "npm",
-			"args": [
-				"run",
-				"dev:network"
-			],
+			"args": ["run", "dev:network"],
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": []

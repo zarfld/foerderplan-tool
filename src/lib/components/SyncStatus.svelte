@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { initDB } from '../utils/database.js';
-	
+
 	let syncStatus = 'initializing';
 	let dbMode = 'unknown';
 	let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -20,10 +20,10 @@
 			const updateOnlineStatus = () => {
 				isOnline = navigator.onLine;
 			};
-			
+
 			window.addEventListener('online', updateOnlineStatus);
 			window.addEventListener('offline', updateOnlineStatus);
-			
+
 			// Return cleanup function
 			return () => {
 				window.removeEventListener('online', updateOnlineStatus);
@@ -34,36 +34,52 @@
 
 	function getStatusIcon() {
 		if (!isOnline) return '📴';
-		
+
 		switch (syncStatus) {
-			case 'connected': return '🟢';
-			case 'syncing': return '🔄';
-			case 'error': return '🔴';
-			case 'disconnected': return '🟡';
-			case 'localStorage': return '💾';
-			default: return '⚪';
+			case 'connected':
+				return '🟢';
+			case 'syncing':
+				return '🔄';
+			case 'error':
+				return '🔴';
+			case 'disconnected':
+				return '🟡';
+			case 'localStorage':
+				return '💾';
+			default:
+				return '⚪';
 		}
 	}
 
 	function getStatusText() {
 		if (!isOnline) return 'Offline';
-		
+
 		switch (syncStatus) {
-			case 'connected': return 'CouchDB verbunden';
-			case 'syncing': return 'Synchronisiert...';
-			case 'error': return 'Sync-Fehler';
-			case 'disconnected': return 'CouchDB getrennt';
-			case 'localStorage': return 'Lokal gespeichert';
-			default: return 'Initialisiert...';
+			case 'connected':
+				return 'CouchDB verbunden';
+			case 'syncing':
+				return 'Synchronisiert...';
+			case 'error':
+				return 'Sync-Fehler';
+			case 'disconnected':
+				return 'CouchDB getrennt';
+			case 'localStorage':
+				return 'Lokal gespeichert';
+			default:
+				return 'Initialisiert...';
 		}
 	}
 
 	function getModeText() {
 		switch (dbMode) {
-			case 'hybrid': return 'Hybrid (Lokal + CouchDB)';
-			case 'couchdb': return 'CouchDB';
-			case 'localStorage': return 'LocalStorage';
-			default: return 'Unbekannt';
+			case 'hybrid':
+				return 'Hybrid (Lokal + CouchDB)';
+			case 'couchdb':
+				return 'CouchDB';
+			case 'localStorage':
+				return 'LocalStorage';
+			default:
+				return 'Unbekannt';
 		}
 	}
 </script>
@@ -73,7 +89,7 @@
 		<span class="status-icon">{getStatusIcon()}</span>
 		<span class="status-text">{getStatusText()}</span>
 	</div>
-	
+
 	<div class="mode-info">
 		<small>Modus: {getModeText()}</small>
 	</div>

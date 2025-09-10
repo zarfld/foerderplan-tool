@@ -2,80 +2,80 @@ name: Android PWA Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   android-pwa-test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build PWA for production
-      run: npm run build
-      env:
-        NODE_ENV: production
-        
-    - name: Setup Android Emulator
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: 29
-        target: default
-        arch: x86_64
-        profile: Nexus 6
-        script: |
-          echo "Android emulator started"
-          
-    - name: Install Playwright with Android Chrome
-      run: |
-        npx playwright install chromium
-        
-    - name: Start preview server
-      run: |
-        npm run preview &
-        sleep 10
-        curl http://localhost:4173 || echo "Server not ready yet"
-      
-    - name: Test PWA installation on mobile
-      run: |
-        npx playwright test --config=playwright.config.ts --project="Mobile Chrome" --grep="PWA"
-        
-    - name: Test offline functionality
-      run: |
-        npx playwright test --config=playwright.config.ts --project="Mobile Chrome" --grep="offline"
-        
-    - name: Generate PWA audit
-      run: |
-        echo "🤖 Android PWA Test Report" > android-report.md
-        echo "==========================" >> android-report.md
-        echo "" >> android-report.md
-        echo "✅ PWA build successful" >> android-report.md
-        echo "📱 Android emulator test completed" >> android-report.md
-        echo "🌐 Offline functionality tested" >> android-report.md
-        echo "📦 App installability checked" >> android-report.md
-        echo "🕐 Test time: $(date)" >> android-report.md
-        cat android-report.md
-        
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: android-test-results
-        path: |
-          test-results/
-          playwright-report/
-          android-report.md
-        retention-days: 7
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build PWA for production
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Setup Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            echo "Android emulator started"
+
+      - name: Install Playwright with Android Chrome
+        run: |
+          npx playwright install chromium
+
+      - name: Start preview server
+        run: |
+          npm run preview &
+          sleep 10
+          curl http://localhost:4173 || echo "Server not ready yet"
+
+      - name: Test PWA installation on mobile
+        run: |
+          npx playwright test --config=playwright.config.ts --project="Mobile Chrome" --grep="PWA"
+
+      - name: Test offline functionality
+        run: |
+          npx playwright test --config=playwright.config.ts --project="Mobile Chrome" --grep="offline"
+
+      - name: Generate PWA audit
+        run: |
+          echo "🤖 Android PWA Test Report" > android-report.md
+          echo "==========================" >> android-report.md
+          echo "" >> android-report.md
+          echo "✅ PWA build successful" >> android-report.md
+          echo "📱 Android emulator test completed" >> android-report.md
+          echo "🌐 Offline functionality tested" >> android-report.md
+          echo "📦 App installability checked" >> android-report.md
+          echo "🕐 Test time: $(date)" >> android-report.md
+          cat android-report.md
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-test-results
+          path: |
+            test-results/
+            playwright-report/
+            android-report.md
+          retention-days: 7

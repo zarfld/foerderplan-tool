@@ -1,105 +1,249 @@
 {
-  "student": {
-    "name": "Max Mustermann",
-    "class": "2A",
-    "teacher": "Frau Schmidt"
-  },
-  "assessmentPeriod": {
-    "timeframe": "Schuljahr 2024/2025, 1. Halbjahr"
-  },
-  "spracheSprechen": {
-    "assessments": [
-      {"task": "Verwendet das Kind einen altersgemäßen Wortschatz?", "status": "ja", "notes": "Wortschatz entspricht dem Alter"},
-      {"task": "Kann es zusammenhängend erzählen und berichten?", "status": "teilweise", "notes": "Braucht manchmal Hilfestellung"},
-      {"task": "Beschreibt es in ganzen, zusammenhängenden Sätzen?", "status": "teilweise", "notes": "Oft unvollständige Sätze"},
-      {"task": "Versteht es Anweisungen und Aufträge an die eigene Person?", "status": "ja", "notes": ""},
-      {"task": "Versteht es Anweisungen und Aufträge an die Gruppe?", "status": "ja", "notes": ""},
-      {"task": "Zeigt es auffällige Störungen im Wortschatz?", "status": "nein", "notes": ""},
-      {"task": "Zeigt es auffällige Störungen in der Grammatik?", "status": "teilweise", "notes": "Schwierigkeiten bei Satzstellung"},
-      {"task": "Richtige Lautbildung beim Nachsprechen von Silben, Wörtern, Sätzen?", "status": "ja", "notes": ""},
-      {"task": "Redefluss fließend?", "status": "teilweise", "notes": "Stockt gelegentlich"}
-    ]
-  },
-  "lesen": {
-    "assessments": [
-      {"task": "Kann das Kind die bisher eingeführten Buchstaben lautieren?", "status": "ja", "notes": "Alle Buchstaben bekannt"},
-      {"task": "Kommen immer wieder Verwechslungen vor?", "status": "teilweise", "notes": "b/d Verwechslung"},
-      {"task": "Erkennt das Kind häufig gelesene Wörter wieder?", "status": "ja", "notes": ""},
-      {"task": "Das Kind kann Pseudowörter nicht lesen.", "status": "nein", "notes": "Kann auch Fantasiewörter lesen"},
-      {"task": "Das Kind buchstabiert fast alle Wörter. Der Sinn des Gelesenen wird zumeist nicht erfasst.", "status": "nein", "notes": ""},
-      {"task": "Das Kind liest stockend, weil es noch zu viele Wörter erlesen muss. Der Sinn des Erlesenen wird einigermaßen erfasst.", "status": "teilweise", "notes": "Bei längeren Texten"},
-      {"task": "Hat das Kind Interesse am Leseunterricht", "status": "ja", "notes": "Zeigt große Motivation"},
-      {"task": "Das Kind kann wohl flüssig lesen, nicht jedoch den Textsinn erfassen.", "status": "nein", "notes": ""},
-      {"task": "Das Kind kann ausreichend flüssig lesen, um den Textsinn zu erfassen.", "status": "teilweise", "notes": "Bei einfachen Texten"}
-    ]
-  },
-  "schreiben": {
-    "assessments": [
-      {"task": "Kann es die Buchstaben formgerecht abschreiben?", "status": "ja", "notes": ""},
-      {"task": "Kann das Kind genannte Buchstaben schreiben?", "status": "ja", "notes": ""},
-      {"task": "Das Kind schreibt lautgetreu?", "status": "teilweise", "notes": "Meist korrekt"},
-      {"task": "Kann es die Druckschrift in Schreibschrift umsetzen?", "status": "teilweise", "notes": "Noch in Übung"},
-      {"task": "Gelingt das Abschreiben von Wörtern ohne Fehler?", "status": "ja", "notes": ""},
-      {"task": "Gelingt das Abschreiben von Texten ohne Fehler?", "status": "teilweise", "notes": "Bei kurzen Texten"},
-      {"task": "Kann es die wichtigsten Wörter des Grundwortschatzes auswendig schreiben?", "status": "teilweise", "notes": "50% der Grundwörter"},
-      {"task": "Kann es häufig geübte Wörter richtig schreiben?", "status": "ja", "notes": ""},
-      {"task": "Kann es angesagte Sätze richtig schreiben?", "status": "teilweise", "notes": "Einfache Sätze"},
-      {"task": "Findet es Fehler in eigenen Texten?", "status": "nein", "notes": "Braucht Unterstützung"},
-      {"task": "Das Kind spricht beim Schreiben mit.", "status": "ja", "notes": "Hilft beim Schreiben"},
-      {"task": "Formuliert es Texte so, dass ein sinnvoller Ablauf der Geschichte entsteht?", "status": "teilweise", "notes": "Bei bekannten Themen"},
-      {"task": "Hat das Kind Freude am Schreiben", "status": "ja", "notes": "Sehr motiviert"}
-    ]
-  },
-  "mathematik": {
-    "assessments": [
-      {"task": "Das Kind kann Mengen erfassen bis …", "status": "ja", "notes": "Bis 10"},
-      {"task": "Beim Brettspiel (Mensch ärgere Dich nicht etc.) rückt es die gewürfelte Anzahl vor (und rückt die Spielfigur nicht eins für eins weiter)", "status": "teilweise", "notes": "Zählt noch einzeln"},
-      {"task": "Es hat eine Ziffernkenntnis bis …", "status": "ja", "notes": "Bis 20"},
-      {"task": "Vor und Rückwärtszählen gelingt bis …", "status": "ja", "notes": "Bis 20 vorwärts, bis 10 rückwärts"},
-      {"task": "Zuzählen gelingt mit Veranschaulichung im Zahlenraum ............", "status": "ja", "notes": "Bis 10"},
-      {"task": "Zuzählen gelingt ohne Veranschaulichung im Zahlenraum ...........", "status": "teilweise", "notes": "Bis 5"},
-      {"task": "Rechnet das Kind noch immer zählend?", "status": "ja", "notes": "Bei größeren Zahlen"},
-      {"task": "Gelingen Rechnungen mit Platzhaltern?", "status": "teilweise", "notes": "Einfache Aufgaben"},
-      {"task": "Treten Unsicherheiten im Kopfrechnen auf?", "status": "ja", "notes": "Bei Addition über 10"},
-      {"task": "Kann es schriftlich addieren?", "status": "nein", "notes": "Noch nicht eingeführt"},
-      {"task": "Kann es schriftlich subtrahieren?", "status": "nein", "notes": "Noch nicht eingeführt"},
-      {"task": "Kann es schriftlich multiplizieren?", "status": "nein", "notes": "Noch nicht eingeführt"},
-      {"task": "Kann es schriftlich dividieren?", "status": "nein", "notes": "Noch nicht eingeführt"},
-      {"task": "Kann es Sachaufgaben berechnen?", "status": "teilweise", "notes": "Einfache Aufgaben mit Hilfe"},
-      {"task": "Sonstige Auffälligkeiten in Mathematik:", "status": "", "notes": "Zeigt große Motivation beim Rechnen"}
-    ]
-  },
-  "foerdermassnahmen": {
-    "horenUnterscheiden": [
-      {"measure": "Reimwörter", "applied": true, "notes": "Täglich 10 Minuten"},
-      {"measure": "Ähnlich klingende Wörter unterscheiden", "applied": true, "notes": ""},
-      {"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
-      {"measure": "Einzahl – Mehrzahl bilden", "applied": true, "notes": ""}
-    ],
-    "sprechenVerstehen": [
-      {"measure": "Bilder erkennen und darüber berichten", "applied": true, "notes": "Wöchentlich"},
-      {"measure": "Berufe raten", "applied": false, "notes": ""},
-      {"measure": "Zeichen zuordnen", "applied": true, "notes": ""},
-      {"measure": "Geschichte erzählen", "applied": true, "notes": "Sehr erfolgreich"},
-      {"measure": "Nach Oberbegriffen ordnen", "applied": false, "notes": ""},
-      {"measure": "Bildergeschichte erzählen", "applied": true, "notes": ""},
-      {"measure": "Präpositionen auf, unter, rechts und links", "applied": true, "notes": ""},
-      {"measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": ""},
-      {"measure": "Bilder beschreiben", "applied": true, "notes": ""},
-      {"measure": "Gefühle zuordnen", "applied": false, "notes": ""},
-      {"measure": "Präposition zwischen", "applied": false, "notes": ""}
-    ],
-    "optischeWahrnehmung": [
-      {"measure": "Bilder vergleichen", "applied": true, "notes": ""},
-      {"measure": "Fehlendes ergänzen", "applied": true, "notes": ""},
-      {"measure": "Rechts-links-Vergleich", "applied": true, "notes": "Noch schwierig"},
-      {"measure": "Formen und Mengen erkennen", "applied": true, "notes": ""}
-    ],
-    "mathematikFoerderung": [
-      {"measure": "Mengen legen", "applied": true, "notes": "Täglich"},
-      {"measure": "Mengen vergleichen (weniger-mehr)", "applied": true, "notes": ""},
-      {"measure": "Mengen zählen", "applied": true, "notes": ""},
-      {"measure": "Sachaufgaben", "applied": false, "notes": "Zu schwierig noch"}
-    ]
-  }
+	"student": {
+		"name": "Max Mustermann",
+		"class": "2A",
+		"teacher": "Frau Schmidt"
+	},
+	"assessmentPeriod": {
+		"timeframe": "Schuljahr 2024/2025, 1. Halbjahr"
+	},
+	"spracheSprechen": {
+		"assessments": [
+			{
+				"task": "Verwendet das Kind einen altersgemäßen Wortschatz?",
+				"status": "ja",
+				"notes": "Wortschatz entspricht dem Alter"
+			},
+			{
+				"task": "Kann es zusammenhängend erzählen und berichten?",
+				"status": "teilweise",
+				"notes": "Braucht manchmal Hilfestellung"
+			},
+			{
+				"task": "Beschreibt es in ganzen, zusammenhängenden Sätzen?",
+				"status": "teilweise",
+				"notes": "Oft unvollständige Sätze"
+			},
+			{
+				"task": "Versteht es Anweisungen und Aufträge an die eigene Person?",
+				"status": "ja",
+				"notes": ""
+			},
+			{
+				"task": "Versteht es Anweisungen und Aufträge an die Gruppe?",
+				"status": "ja",
+				"notes": ""
+			},
+			{ "task": "Zeigt es auffällige Störungen im Wortschatz?", "status": "nein", "notes": "" },
+			{
+				"task": "Zeigt es auffällige Störungen in der Grammatik?",
+				"status": "teilweise",
+				"notes": "Schwierigkeiten bei Satzstellung"
+			},
+			{
+				"task": "Richtige Lautbildung beim Nachsprechen von Silben, Wörtern, Sätzen?",
+				"status": "ja",
+				"notes": ""
+			},
+			{ "task": "Redefluss fließend?", "status": "teilweise", "notes": "Stockt gelegentlich" }
+		]
+	},
+	"lesen": {
+		"assessments": [
+			{
+				"task": "Kann das Kind die bisher eingeführten Buchstaben lautieren?",
+				"status": "ja",
+				"notes": "Alle Buchstaben bekannt"
+			},
+			{
+				"task": "Kommen immer wieder Verwechslungen vor?",
+				"status": "teilweise",
+				"notes": "b/d Verwechslung"
+			},
+			{ "task": "Erkennt das Kind häufig gelesene Wörter wieder?", "status": "ja", "notes": "" },
+			{
+				"task": "Das Kind kann Pseudowörter nicht lesen.",
+				"status": "nein",
+				"notes": "Kann auch Fantasiewörter lesen"
+			},
+			{
+				"task": "Das Kind buchstabiert fast alle Wörter. Der Sinn des Gelesenen wird zumeist nicht erfasst.",
+				"status": "nein",
+				"notes": ""
+			},
+			{
+				"task": "Das Kind liest stockend, weil es noch zu viele Wörter erlesen muss. Der Sinn des Erlesenen wird einigermaßen erfasst.",
+				"status": "teilweise",
+				"notes": "Bei längeren Texten"
+			},
+			{
+				"task": "Hat das Kind Interesse am Leseunterricht",
+				"status": "ja",
+				"notes": "Zeigt große Motivation"
+			},
+			{
+				"task": "Das Kind kann wohl flüssig lesen, nicht jedoch den Textsinn erfassen.",
+				"status": "nein",
+				"notes": ""
+			},
+			{
+				"task": "Das Kind kann ausreichend flüssig lesen, um den Textsinn zu erfassen.",
+				"status": "teilweise",
+				"notes": "Bei einfachen Texten"
+			}
+		]
+	},
+	"schreiben": {
+		"assessments": [
+			{ "task": "Kann es die Buchstaben formgerecht abschreiben?", "status": "ja", "notes": "" },
+			{ "task": "Kann das Kind genannte Buchstaben schreiben?", "status": "ja", "notes": "" },
+			{ "task": "Das Kind schreibt lautgetreu?", "status": "teilweise", "notes": "Meist korrekt" },
+			{
+				"task": "Kann es die Druckschrift in Schreibschrift umsetzen?",
+				"status": "teilweise",
+				"notes": "Noch in Übung"
+			},
+			{ "task": "Gelingt das Abschreiben von Wörtern ohne Fehler?", "status": "ja", "notes": "" },
+			{
+				"task": "Gelingt das Abschreiben von Texten ohne Fehler?",
+				"status": "teilweise",
+				"notes": "Bei kurzen Texten"
+			},
+			{
+				"task": "Kann es die wichtigsten Wörter des Grundwortschatzes auswendig schreiben?",
+				"status": "teilweise",
+				"notes": "50% der Grundwörter"
+			},
+			{ "task": "Kann es häufig geübte Wörter richtig schreiben?", "status": "ja", "notes": "" },
+			{
+				"task": "Kann es angesagte Sätze richtig schreiben?",
+				"status": "teilweise",
+				"notes": "Einfache Sätze"
+			},
+			{
+				"task": "Findet es Fehler in eigenen Texten?",
+				"status": "nein",
+				"notes": "Braucht Unterstützung"
+			},
+			{
+				"task": "Das Kind spricht beim Schreiben mit.",
+				"status": "ja",
+				"notes": "Hilft beim Schreiben"
+			},
+			{
+				"task": "Formuliert es Texte so, dass ein sinnvoller Ablauf der Geschichte entsteht?",
+				"status": "teilweise",
+				"notes": "Bei bekannten Themen"
+			},
+			{ "task": "Hat das Kind Freude am Schreiben", "status": "ja", "notes": "Sehr motiviert" }
+		]
+	},
+	"mathematik": {
+		"assessments": [
+			{ "task": "Das Kind kann Mengen erfassen bis …", "status": "ja", "notes": "Bis 10" },
+			{
+				"task": "Beim Brettspiel (Mensch ärgere Dich nicht etc.) rückt es die gewürfelte Anzahl vor (und rückt die Spielfigur nicht eins für eins weiter)",
+				"status": "teilweise",
+				"notes": "Zählt noch einzeln"
+			},
+			{ "task": "Es hat eine Ziffernkenntnis bis …", "status": "ja", "notes": "Bis 20" },
+			{
+				"task": "Vor und Rückwärtszählen gelingt bis …",
+				"status": "ja",
+				"notes": "Bis 20 vorwärts, bis 10 rückwärts"
+			},
+			{
+				"task": "Zuzählen gelingt mit Veranschaulichung im Zahlenraum ............",
+				"status": "ja",
+				"notes": "Bis 10"
+			},
+			{
+				"task": "Zuzählen gelingt ohne Veranschaulichung im Zahlenraum ...........",
+				"status": "teilweise",
+				"notes": "Bis 5"
+			},
+			{
+				"task": "Rechnet das Kind noch immer zählend?",
+				"status": "ja",
+				"notes": "Bei größeren Zahlen"
+			},
+			{
+				"task": "Gelingen Rechnungen mit Platzhaltern?",
+				"status": "teilweise",
+				"notes": "Einfache Aufgaben"
+			},
+			{
+				"task": "Treten Unsicherheiten im Kopfrechnen auf?",
+				"status": "ja",
+				"notes": "Bei Addition über 10"
+			},
+			{
+				"task": "Kann es schriftlich addieren?",
+				"status": "nein",
+				"notes": "Noch nicht eingeführt"
+			},
+			{
+				"task": "Kann es schriftlich subtrahieren?",
+				"status": "nein",
+				"notes": "Noch nicht eingeführt"
+			},
+			{
+				"task": "Kann es schriftlich multiplizieren?",
+				"status": "nein",
+				"notes": "Noch nicht eingeführt"
+			},
+			{
+				"task": "Kann es schriftlich dividieren?",
+				"status": "nein",
+				"notes": "Noch nicht eingeführt"
+			},
+			{
+				"task": "Kann es Sachaufgaben berechnen?",
+				"status": "teilweise",
+				"notes": "Einfache Aufgaben mit Hilfe"
+			},
+			{
+				"task": "Sonstige Auffälligkeiten in Mathematik:",
+				"status": "",
+				"notes": "Zeigt große Motivation beim Rechnen"
+			}
+		]
+	},
+	"foerdermassnahmen": {
+		"horenUnterscheiden": [
+			{ "measure": "Reimwörter", "applied": true, "notes": "Täglich 10 Minuten" },
+			{ "measure": "Ähnlich klingende Wörter unterscheiden", "applied": true, "notes": "" },
+			{ "measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": "" },
+			{ "measure": "Einzahl – Mehrzahl bilden", "applied": true, "notes": "" }
+		],
+		"sprechenVerstehen": [
+			{
+				"measure": "Bilder erkennen und darüber berichten",
+				"applied": true,
+				"notes": "Wöchentlich"
+			},
+			{ "measure": "Berufe raten", "applied": false, "notes": "" },
+			{ "measure": "Zeichen zuordnen", "applied": true, "notes": "" },
+			{ "measure": "Geschichte erzählen", "applied": true, "notes": "Sehr erfolgreich" },
+			{ "measure": "Nach Oberbegriffen ordnen", "applied": false, "notes": "" },
+			{ "measure": "Bildergeschichte erzählen", "applied": true, "notes": "" },
+			{ "measure": "Präpositionen auf, unter, rechts und links", "applied": true, "notes": "" },
+			{ "measure": "Zusammengesetzte Wörter bilden", "applied": false, "notes": "" },
+			{ "measure": "Bilder beschreiben", "applied": true, "notes": "" },
+			{ "measure": "Gefühle zuordnen", "applied": false, "notes": "" },
+			{ "measure": "Präposition zwischen", "applied": false, "notes": "" }
+		],
+		"optischeWahrnehmung": [
+			{ "measure": "Bilder vergleichen", "applied": true, "notes": "" },
+			{ "measure": "Fehlendes ergänzen", "applied": true, "notes": "" },
+			{ "measure": "Rechts-links-Vergleich", "applied": true, "notes": "Noch schwierig" },
+			{ "measure": "Formen und Mengen erkennen", "applied": true, "notes": "" }
+		],
+		"mathematikFoerderung": [
+			{ "measure": "Mengen legen", "applied": true, "notes": "Täglich" },
+			{ "measure": "Mengen vergleichen (weniger-mehr)", "applied": true, "notes": "" },
+			{ "measure": "Mengen zählen", "applied": true, "notes": "" },
+			{ "measure": "Sachaufgaben", "applied": false, "notes": "Zu schwierig noch" }
+		]
+	}
 }

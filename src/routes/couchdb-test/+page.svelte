@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	
+
 	let testResult = '';
 	let isLoading = false;
 	let connectionStatus = 'Not tested';
-	
+
 	// CouchDB connection details
 	const couchdbConfig = {
 		localUrl: 'http://157.247.1.102:5984/',
@@ -14,20 +14,20 @@
 		username: 'Lehrer',
 		password: 'jenAplan',
 		databases: {
-			test: 'foerderplan-test',      // For development and testing
-			production: 'foerderplan',     // For live teacher data
-			backup: 'foerderplan-backup'  // For automated backups
+			test: 'foerderplan-test', // For development and testing
+			production: 'foerderplan', // For live teacher data
+			backup: 'foerderplan-backup' // For automated backups
 		}
 	};
-	
+
 	// Helper function to safely access database names
 	function getDatabaseName(key: string): string {
 		const databases = couchdbConfig.databases as Record<string, string>;
 		return databases[key] || '';
 	}
-	
+
 	let selectedDatabase = 'test'; // Default to test database
-	
+
 	async function testConnection(url: string) {
 		try {
 			// Test basic connection with CORS mode
@@ -36,46 +36,50 @@
 				mode: 'cors',
 				credentials: 'include',
 				headers: {
-					'Authorization': 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
+					Authorization: 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
 					'Content-Type': 'application/json',
-					'Accept': 'application/json'
+					Accept: 'application/json'
 				}
 			});
-			
+
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 			}
-			
+
 			const data = await response.json();
 			return { success: true, data };
 		} catch (error) {
 			// Enhanced error detection with proper type checking
-			const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-			
+			const errorMessage =
+				error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+
 			if (errorMessage.includes('cors') || errorMessage.includes('cross-origin')) {
-				return { 
-					success: false, 
+				return {
+					success: false,
 					error: `CORS Error: ${error instanceof Error ? error.message : String(error)}`,
 					errorType: 'cors',
-					solution: 'Configure CORS headers on CouchDB server. See COUCHDB-SETUP.md for instructions.'
+					solution:
+						'Configure CORS headers on CouchDB server. See COUCHDB-SETUP.md for instructions.'
 				};
 			} else if (errorMessage.includes('failed to fetch') || errorMessage.includes('network')) {
-				return { 
-					success: false, 
+				return {
+					success: false,
 					error: `Network Error: ${error instanceof Error ? error.message : String(error)}`,
 					errorType: 'network',
-					solution: 'Check if server is running and accessible. Verify URL and network connectivity.'
+					solution:
+						'Check if server is running and accessible. Verify URL and network connectivity.'
 				};
 			} else if (errorMessage.includes('timeout')) {
-				return { 
-					success: false, 
+				return {
+					success: false,
 					error: `Timeout Error: ${error instanceof Error ? error.message : String(error)}`,
 					errorType: 'timeout',
-					solution: 'Server is taking too long to respond. Check server performance and network latency.'
+					solution:
+						'Server is taking too long to respond. Check server performance and network latency.'
 				};
 			} else {
-				return { 
-					success: false, 
+				return {
+					success: false,
 					error: `Unknown Error: ${error instanceof Error ? error.message : String(error)}`,
 					errorType: 'unknown',
 					solution: 'Check browser console for more details.'
@@ -83,23 +87,24 @@
 			}
 		}
 	}
-	
+
 	async function testDatabase(url: string) {
 		try {
 			// Test database access
-			const dbName = couchdbConfig.databases[selectedDatabase as keyof typeof couchdbConfig.databases];
+			const dbName =
+				couchdbConfig.databases[selectedDatabase as keyof typeof couchdbConfig.databases];
 			const dbUrl = `${url}${dbName}/`;
 			const response = await fetch(dbUrl, {
 				method: 'GET',
 				mode: 'cors',
 				credentials: 'include',
 				headers: {
-					'Authorization': 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
+					Authorization: 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
 					'Content-Type': 'application/json',
-					'Accept': 'application/json'
+					Accept: 'application/json'
 				}
 			});
-			
+
 			if (response.status === 404) {
 				// Database doesn't exist, try to create it
 				const createResponse = await fetch(dbUrl, {
@@ -107,28 +112,28 @@
 					mode: 'cors',
 					credentials: 'include',
 					headers: {
-						'Authorization': 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
+						Authorization: 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
 						'Content-Type': 'application/json',
-						'Accept': 'application/json'
+						Accept: 'application/json'
 					}
 				});
-				
+
 				if (!createResponse.ok) {
 					throw new Error(`Failed to create database: ${createResponse.status}`);
 				}
-				
+
 				return { success: true, created: true };
 			} else if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 			}
-			
+
 			const data = await response.json();
 			return { success: true, data };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };
 		}
 	}
-	
+
 	async function testDocument(url: string) {
 		try {
 			// Test document creation with unique ID to avoid conflicts
@@ -136,7 +141,7 @@
 			const timestamp = Date.now();
 			const docId = `test-doc-${timestamp}`;
 			const docUrl = `${url}${dbName}/${docId}`;
-			
+
 			const testDoc = {
 				_id: docId,
 				type: 'test',
@@ -144,40 +149,40 @@
 				message: `Test document from Förderplan Tool (${selectedDatabase} database)`,
 				testNumber: timestamp
 			};
-			
+
 			// First try to create the document
 			const response = await fetch(docUrl, {
 				method: 'PUT',
 				headers: {
-					'Authorization': 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
+					Authorization: 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(testDoc)
 			});
-			
+
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 			}
-			
+
 			const createResult = await response.json();
-			
+
 			// Verify the document was created by reading it back
 			const verifyResponse = await fetch(docUrl, {
 				method: 'GET',
 				headers: {
-					'Authorization': 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
+					Authorization: 'Basic ' + btoa(`${couchdbConfig.username}:${couchdbConfig.password}`),
 					'Content-Type': 'application/json'
 				}
 			});
-			
+
 			if (!verifyResponse.ok) {
 				throw new Error(`Verification failed: HTTP ${verifyResponse.status}`);
 			}
-			
+
 			const verifyResult = await verifyResponse.json();
-			
-			return { 
-				success: true, 
+
+			return {
+				success: true,
 				data: createResult,
 				verified: verifyResult,
 				docId: docId
@@ -186,14 +191,14 @@
 			return { success: false, error: error?.message || String(error) };
 		}
 	}
-	
+
 	async function runFullTest(url: string, label: string) {
 		if (!browser) return;
-		
+
 		isLoading = true;
 		testResult += `\n📊 Testing ${label} (${url})\n`;
 		testResult += '='.repeat(50) + '\n';
-		
+
 		// Test 1: Basic connection
 		testResult += '1️⃣ Testing basic connection...\n';
 		const connectionTest = await testConnection(url);
@@ -206,7 +211,7 @@
 			isLoading = false;
 			return;
 		}
-		
+
 		// Test 2: Database access
 		testResult += '2️⃣ Testing database access...\n';
 		const dbTest = await testDatabase(url);
@@ -223,7 +228,7 @@
 			isLoading = false;
 			return;
 		}
-		
+
 		// Test 3: Document operations
 		testResult += '3️⃣ Testing document operations...\n';
 		const docTest = await testDocument(url);
@@ -244,16 +249,16 @@
 			}
 			testResult += '\n';
 		}
-		
+
 		isLoading = false;
 	}
-	
+
 	async function testLocalConnection() {
 		connectionStatus = 'Testing local connection...';
 		await runFullTest(couchdbConfig.localUrl, 'Local Network Connection');
 		connectionStatus = 'Local test completed';
 	}
-	
+
 	async function testWebConnection() {
 		connectionStatus = 'Testing web connection...';
 		await runFullTest(couchdbConfig.webUrl, 'Web HTTPS Connection');
@@ -265,7 +270,7 @@
 		await runFullTest(couchdbConfig.proxyUrl, 'CORS Proxy Connection (localhost:3001)');
 		connectionStatus = 'Proxy test completed';
 	}
-	
+
 	function clearResults() {
 		testResult = '';
 		connectionStatus = 'Cleared';
@@ -275,7 +280,7 @@
 	function generateCORSCommands() {
 		const serverUrl = couchdbConfig.localUrl;
 		const adminCredentials = `admin:admin`; // Default - user should change this
-		
+
 		return `
 # CouchDB CORS Configuration Commands
 # Replace 'admin:admin' with your actual admin credentials
@@ -303,13 +308,13 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 	async function testNetworkConnectivity() {
 		testResult += '\n🔍 Network Diagnostics\n';
 		testResult += '='.repeat(50) + '\n';
-		
+
 		// Test basic connectivity without authentication
 		const urls = [couchdbConfig.localUrl, couchdbConfig.webUrl];
-		
+
 		for (const url of urls) {
 			testResult += `\n📡 Testing basic connectivity to ${url}\n`;
-			
+
 			try {
 				const startTime = Date.now();
 				const response = await fetch(url, {
@@ -318,12 +323,12 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 					cache: 'no-cache'
 				});
 				const endTime = Date.now();
-				
+
 				testResult += `✅ Server responded (${endTime - startTime}ms)\n`;
 				testResult += `   Status: ${response.status || 'No CORS - server accessible'}\n`;
 			} catch (error) {
 				testResult += `❌ Connection failed: ${error instanceof Error ? error.message : String(error)}\n`;
-				
+
 				if (url.includes('https://')) {
 					testResult += `   💡 For HTTPS servers, check:\n`;
 					testResult += `      - SSL certificate validity\n`;
@@ -362,25 +367,29 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 
 <div class="couchdb-test">
 	<h1>🗄️ CouchDB Connection Test</h1>
-	
+
 	<div class="connection-info">
 		<h2>📋 Connection Details</h2>
 		<div class="config-display">
 			<div class="config-item">
-				<strong>Local URL:</strong> {couchdbConfig.localUrl}
+				<strong>Local URL:</strong>
+				{couchdbConfig.localUrl}
 			</div>
 			<div class="config-item">
-				<strong>Web URL:</strong> {couchdbConfig.webUrl}
+				<strong>Web URL:</strong>
+				{couchdbConfig.webUrl}
 			</div>
 			<div class="config-item">
-				<strong>Proxy URL:</strong> {couchdbConfig.proxyUrl} 
+				<strong>Proxy URL:</strong>
+				{couchdbConfig.proxyUrl}
 				<span class="proxy-note">(CORS-enabled development proxy)</span>
 			</div>
 			<div class="config-item">
-				<strong>Username:</strong> {couchdbConfig.username}
+				<strong>Username:</strong>
+				{couchdbConfig.username}
 			</div>
 			<div class="config-item">
-				<strong>Selected Database:</strong> 
+				<strong>Selected Database:</strong>
 				<select bind:value={selectedDatabase} class="db-selector">
 					<option value="test">🧪 {couchdbConfig.databases.test} (Test)</option>
 					<option value="production">🏭 {couchdbConfig.databases.production} (Production)</option>
@@ -389,39 +398,23 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 			</div>
 		</div>
 	</div>
-	
+
 	<div class="test-controls">
 		<h2>🧪 Connection Tests</h2>
 		<div class="button-group">
-			<button 
-				class="btn btn-primary" 
-				on:click={testLocalConnection}
-				disabled={isLoading}
-			>
+			<button class="btn btn-primary" on:click={testLocalConnection} disabled={isLoading}>
 				🏠 Test Local Connection
 			</button>
-			
-			<button 
-				class="btn btn-secondary" 
-				on:click={testWebConnection}
-				disabled={isLoading}
-			>
+
+			<button class="btn btn-secondary" on:click={testWebConnection} disabled={isLoading}>
 				🌐 Test Web Connection
 			</button>
 
-			<button 
-				class="btn btn-success" 
-				on:click={testProxyConnection}
-				disabled={isLoading}
-			>
+			<button class="btn btn-success" on:click={testProxyConnection} disabled={isLoading}>
 				🔄 Test Proxy Connection
 			</button>
-			
-			<button 
-				class="btn btn-outline" 
-				on:click={clearResults}
-				disabled={isLoading}
-			>
+
+			<button class="btn btn-outline" on:click={clearResults} disabled={isLoading}>
 				🗑️ Clear Results
 			</button>
 		</div>
@@ -429,18 +422,11 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		<div class="diagnostics-section">
 			<h3>🔧 Diagnostics & Troubleshooting</h3>
 			<div class="diagnostic-controls">
-				<button 
-					class="btn btn-info" 
-					on:click={testNetworkConnectivity}
-					disabled={isLoading}
-				>
+				<button class="btn btn-info" on:click={testNetworkConnectivity} disabled={isLoading}>
 					🔍 Network Diagnostics
 				</button>
-				
-				<button 
-					class="btn btn-warning" 
-					on:click={toggleCORSCommands}
-				>
+
+				<button class="btn btn-warning" on:click={toggleCORSCommands}>
 					{showCORSCommands ? '🔼' : '🔽'} CORS Configuration
 				</button>
 			</div>
@@ -452,14 +438,11 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 						⚠️ <strong>Security Note:</strong> Replace 'admin:admin' with your actual CouchDB admin credentials.
 						For production, use specific domain instead of '*' for origins.
 					</p>
-					
+
 					<div class="command-box">
 						<div class="command-header">
 							<span>Run these commands on your CouchDB server:</span>
-							<button 
-								class="btn btn-small" 
-								on:click={() => copyToClipboard(corsCommands)}
-							>
+							<button class="btn btn-small" on:click={() => copyToClipboard(corsCommands)}>
 								📋 Copy Commands
 							</button>
 						</div>
@@ -469,23 +452,34 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 					<div class="alternative-methods">
 						<h5>Alternative Configuration Methods:</h5>
 						<ul>
-							<li><strong>Fauxton Web Interface:</strong> Go to <a href="{couchdbConfig.localUrl}_utils/" target="_blank">{couchdbConfig.localUrl}_utils/</a> → Configuration → Add CORS settings</li>
-							<li><strong>Configuration File:</strong> Edit CouchDB config file (usually <code>/etc/couchdb/local.ini</code>) and restart service</li>
-							<li><strong>Proxy Server:</strong> Use a proxy server with CORS headers if direct configuration is not possible</li>
+							<li>
+								<strong>Fauxton Web Interface:</strong> Go to
+								<a href="{couchdbConfig.localUrl}_utils/" target="_blank"
+									>{couchdbConfig.localUrl}_utils/</a
+								> → Configuration → Add CORS settings
+							</li>
+							<li>
+								<strong>Configuration File:</strong> Edit CouchDB config file (usually
+								<code>/etc/couchdb/local.ini</code>) and restart service
+							</li>
+							<li>
+								<strong>Proxy Server:</strong> Use a proxy server with CORS headers if direct configuration
+								is not possible
+							</li>
 						</ul>
 					</div>
 				</div>
 			{/if}
 		</div>
-		
+
 		<div class="status">
-			<strong>Status:</strong> 
+			<strong>Status:</strong>
 			<span class="status-text" class:loading={isLoading}>
 				{connectionStatus}
 			</span>
 		</div>
 	</div>
-	
+
 	<div class="test-results">
 		<h2>📊 Test Results</h2>
 		<div class="results-container">
@@ -495,53 +489,70 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 					<span>Running tests...</span>
 				</div>
 			{/if}
-			
-			<pre class="results-text">{testResult || 'No tests run yet. Click a test button above to start.'}</pre>
+
+			<pre class="results-text">{testResult ||
+					'No tests run yet. Click a test button above to start.'}</pre>
 		</div>
 	</div>
-	
+
 	<div class="next-steps">
 		<h2>�️ Database Setup</h2>
 		<div class="database-info">
 			<div class="info-box warning">
 				<h3>⚠️ Database Creation Required</h3>
-				<p>The selected database <code>{getDatabaseName(selectedDatabase)}</code> needs to be created before we can test full functionality.</p>
-				
+				<p>
+					The selected database <code>{getDatabaseName(selectedDatabase)}</code> needs to be created
+					before we can test full functionality.
+				</p>
+
 				<h4>Recommended Database Structure:</h4>
 				<ul>
 					<li><strong>🧪 {couchdbConfig.databases.test}:</strong> For development and testing</li>
 					<li><strong>🏭 {couchdbConfig.databases.production}:</strong> For live teacher data</li>
 					<li><strong>💾 {couchdbConfig.databases.backup}:</strong> For automated backups</li>
 				</ul>
-				
+
 				<h4>Manual Creation Options:</h4>
 				<ol>
 					<li>
-						<strong>Via Fauxton (Web Interface):</strong><br>
-						Visit <a href="{couchdbConfig.localUrl}_utils/" target="_blank">{couchdbConfig.localUrl}_utils/</a><br>
-						Login with <code>{couchdbConfig.username}</code> / <code>{couchdbConfig.password}</code><br>
+						<strong>Via Fauxton (Web Interface):</strong><br />
+						Visit
+						<a href="{couchdbConfig.localUrl}_utils/" target="_blank"
+							>{couchdbConfig.localUrl}_utils/</a
+						><br />
+						Login with <code>{couchdbConfig.username}</code> /
+						<code>{couchdbConfig.password}</code><br />
 						Create database: <code>{getDatabaseName(selectedDatabase)}</code>
 					</li>
 					<li>
-						<strong>Via HTTP PUT:</strong><br>
-						<code>PUT {couchdbConfig.localUrl}{getDatabaseName(selectedDatabase)}</code><br>
+						<strong>Via HTTP PUT:</strong><br />
+						<code>PUT {couchdbConfig.localUrl}{getDatabaseName(selectedDatabase)}</code><br />
 						(with Basic Auth credentials)
 					</li>
 				</ol>
 			</div>
-			
+
 			<div class="info-box info">
 				<h3>🔍 What We're Testing</h3>
 				<ul>
 					<li>✅ <strong>Basic Connection:</strong> Can we reach the CouchDB server?</li>
-					<li>⚠️ <strong>Database Access:</strong> Can we access/create the database? (CORS limited)</li>
-					<li>⚠️ <strong>Document Operations:</strong> Can we read/write documents? (CORS limited)</li>
+					<li>
+						⚠️ <strong>Database Access:</strong> Can we access/create the database? (CORS limited)
+					</li>
+					<li>
+						⚠️ <strong>Document Operations:</strong> Can we read/write documents? (CORS limited)
+					</li>
 				</ul>
-				<p><em>Note: CORS restrictions prevent full testing from the browser. A real sync implementation would use a different approach.</em></p>
+				<p>
+					<em
+						>Note: CORS restrictions prevent full testing from the browser. A real sync
+						implementation would use a different approach.</em
+					>
+				</p>
 			</div>
 		</div>
 	</div>
-	
+
 	<div class="next-steps">
 		<h2>🚀 Next Steps</h2>
 		<div class="steps-list">
@@ -554,7 +565,8 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 				</ul>
 			</div>
 			<div class="step">
-				<strong>2.</strong> Run connection tests to verify basic connectivity (CORS will still limit functionality)
+				<strong>2.</strong> Run connection tests to verify basic connectivity (CORS will still limit
+				functionality)
 			</div>
 			<div class="step">
 				<strong>3.</strong> Implement server-side sync or use PouchDB for direct connection
@@ -570,35 +582,27 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		<div class="info-box">
 			<h3>🔧 CORS Configuration Helper</h3>
 			<p>Use the following commands to configure CORS on your CouchDB server:</p>
-			
+
 			<pre class="cors-commands">{corsCommands}</pre>
-			
-			<button 
-				class="btn btn-secondary" 
-				on:click={toggleCORSCommands}
-				disabled={isLoading}
-			>
+
+			<button class="btn btn-secondary" on:click={toggleCORSCommands} disabled={isLoading}>
 				{showCORSCommands ? '🔽 Hide CORS Commands' : '▶️ Show CORS Commands'}
 			</button>
-			
-			<button 
-				class="btn btn-primary" 
+
+			<button
+				class="btn btn-primary"
 				on:click={() => copyToClipboard(corsCommands)}
 				disabled={isLoading || !corsCommands}
 			>
 				📋 Copy CORS Commands
 			</button>
 		</div>
-		
+
 		<div class="info-box">
 			<h3>🌐 Network Connectivity Test</h3>
 			<p>Check basic network connectivity to the CouchDB server:</p>
-			
-			<button 
-				class="btn btn-primary" 
-				on:click={testNetworkConnectivity}
-				disabled={isLoading}
-			>
+
+			<button class="btn btn-primary" on:click={testNetworkConnectivity} disabled={isLoading}>
 				🔍 Test Network Connectivity
 			</button>
 		</div>
@@ -612,47 +616,51 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		padding: 2rem;
 		font-family: system-ui, sans-serif;
 	}
-	
+
 	h1 {
 		color: #1f2937;
 		margin-bottom: 2rem;
 		text-align: center;
 	}
-	
+
 	h2 {
 		color: #374151;
 		margin-bottom: 1rem;
 		border-bottom: 2px solid #e5e7eb;
 		padding-bottom: 0.5rem;
 	}
-	
-	.connection-info, .test-controls, .test-results, .next-steps, .diagnostics {
+
+	.connection-info,
+	.test-controls,
+	.test-results,
+	.next-steps,
+	.diagnostics {
 		background: white;
 		border-radius: 8px;
 		padding: 1.5rem;
 		margin-bottom: 2rem;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
-	
+
 	.config-display {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 1rem;
 	}
-	
+
 	.config-item {
 		padding: 0.75rem;
 		background: #f8f9fa;
 		border-radius: 6px;
 		border: 1px solid #e9ecef;
 	}
-	
+
 	.proxy-note {
 		font-size: 0.8rem;
 		color: #6c757d;
 		font-style: italic;
 	}
-	
+
 	.db-selector {
 		margin-left: 0.5rem;
 		padding: 0.25rem 0.5rem;
@@ -661,20 +669,20 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		background: white;
 		font-size: 0.875rem;
 	}
-	
+
 	.db-selector:focus {
 		outline: none;
 		border-color: #3b82f6;
 		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 	}
-	
+
 	.button-group {
 		display: flex;
 		gap: 1rem;
 		margin-bottom: 1rem;
 		flex-wrap: wrap;
 	}
-	
+
 	.btn {
 		padding: 0.75rem 1.5rem;
 		border: none;
@@ -687,26 +695,26 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		align-items: center;
 		gap: 0.5rem;
 	}
-	
+
 	.btn:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
-	
+
 	.btn-primary {
 		background: #3b82f6;
 		color: white;
 	}
-	
+
 	.btn-primary:hover:not(:disabled) {
 		background: #2563eb;
 	}
-	
+
 	.btn-secondary {
 		background: #10b981;
 		color: white;
 	}
-	
+
 	.btn-secondary:hover:not(:disabled) {
 		background: #059669;
 	}
@@ -719,38 +727,38 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 	.btn-success:hover:not(:disabled) {
 		background: #218838;
 	}
-	
+
 	.btn-outline {
 		background: transparent;
 		color: #374151;
 		border: 1px solid #d1d5db;
 	}
-	
+
 	.btn-outline:hover:not(:disabled) {
 		background: #f9fafb;
 	}
-	
+
 	.status {
 		padding: 1rem;
 		background: #f0f9ff;
 		border: 1px solid #0ea5e9;
 		border-radius: 6px;
 	}
-	
+
 	.status-text {
 		color: #0369a1;
 		font-weight: 500;
 	}
-	
+
 	.status-text.loading {
 		color: #d97706;
 	}
-	
+
 	.results-container {
 		position: relative;
 		min-height: 200px;
 	}
-	
+
 	.loading-indicator {
 		display: flex;
 		align-items: center;
@@ -759,7 +767,7 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		color: #d97706;
 		font-weight: 500;
 	}
-	
+
 	.spinner {
 		width: 20px;
 		height: 20px;
@@ -768,12 +776,16 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
 	}
-	
+
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
-	
+
 	.results-text {
 		background: #1f2937;
 		color: #f9fafb;
@@ -786,12 +798,12 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		white-space: pre-wrap;
 		min-height: 150px;
 	}
-	
+
 	.steps-list {
 		display: grid;
 		gap: 1rem;
 	}
-	
+
 	.step {
 		padding: 1rem;
 		background: #f0fdf4;
@@ -799,40 +811,40 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		border-radius: 6px;
 		border-left: 4px solid #10b981;
 	}
-	
+
 	.database-info {
 		display: grid;
 		gap: 1.5rem;
 	}
-	
+
 	.info-box {
 		padding: 1.5rem;
 		border-radius: 8px;
 		border-left: 4px solid;
 	}
-	
+
 	.info-box.warning {
 		background: #fffbeb;
 		border-left-color: #f59e0b;
 		border: 1px solid #fed7aa;
 	}
-	
+
 	.info-box.warning h3 {
 		color: #92400e;
 		margin-bottom: 1rem;
 	}
-	
+
 	.info-box.info {
 		background: #eff6ff;
 		border-left-color: #3b82f6;
 		border: 1px solid #bfdbfe;
 	}
-	
+
 	.info-box.info h3 {
 		color: #1e40af;
 		margin-bottom: 1rem;
 	}
-	
+
 	.info-box code {
 		background: rgba(0, 0, 0, 0.1);
 		padding: 0.2rem 0.4rem;
@@ -840,32 +852,33 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		font-family: 'Courier New', monospace;
 		font-size: 0.875rem;
 	}
-	
+
 	.info-box a {
 		color: #3b82f6;
 		text-decoration: underline;
 	}
-	
+
 	.info-box a:hover {
 		color: #1e40af;
 	}
-	
-	.info-box ol, .info-box ul {
+
+	.info-box ol,
+	.info-box ul {
 		margin: 1rem 0;
 		padding-left: 1.5rem;
 	}
-	
+
 	.info-box li {
 		margin-bottom: 0.5rem;
 	}
-	
+
 	.diagnostics {
 		background: #f9fafb;
 		padding: 1.5rem;
 		border-radius: 8px;
 		border: 1px solid #d1d5db;
 	}
-	
+
 	.cors-commands {
 		background: #1f2937;
 		color: #f9fafb;
@@ -1014,17 +1027,18 @@ curl http://${adminCredentials}@${serverUrl.replace('http://', '').replace('/', 
 		border-radius: 3px;
 		font-size: 0.875rem;
 	}
-	
+
 	@media (max-width: 768px) {
 		.couchdb-test {
 			padding: 1rem;
 		}
-		
+
 		.config-display {
 			grid-template-columns: 1fr;
 		}
-		
-		.button-group, .diagnostic-controls {
+
+		.button-group,
+		.diagnostic-controls {
 			flex-direction: column;
 		}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let data: any;
 	export let params: any = undefined; // Accept params prop to prevent warning
-	
+
 	// Mark as used to prevent warnings
 	params;
 </script>
@@ -24,16 +24,16 @@
 		padding: 2rem;
 		font-family: system-ui, sans-serif;
 	}
-	
+
 	h1 {
 		color: #2563eb;
 	}
-	
+
 	a {
 		color: #2563eb;
 		text-decoration: none;
 	}
-	
+
 	a:hover {
 		text-decoration: underline;
 	}

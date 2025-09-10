@@ -38,7 +38,7 @@ test.describe('PWA Functionality', () => {
 
 		// Reload the page and check if it still works
 		await page.reload();
-		
+
 		// Check if main content is still visible
 		await expect(page.locator('h1')).toBeVisible();
 	});

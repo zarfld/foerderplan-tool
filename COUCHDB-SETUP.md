@@ -3,11 +3,13 @@
 ## Current Issues
 
 ### 1. Local Network CORS Error (http://157.247.1.102:5984/)
+
 - Connection succeeds but CORS headers are missing
 - Browser blocks access due to security policy
 - **Solution**: Configure CORS on CouchDB server
 
 ### 2. Web HTTPS Server Unreachable (https://couchdb.ettingshaus14.synology.me)
+
 - Cannot reach server at all
 - Possible network, firewall, or DNS issues
 - **Solution**: Check server configuration and network access
@@ -67,18 +69,21 @@ We've included a ready-to-use CORS proxy server that solves CORS issues without 
 #### Setup and Usage:
 
 **Windows (PowerShell):**
+
 ```powershell
 # Run the setup script (installs dependencies and starts proxy)
 .\scripts\start-cors-proxy.ps1
 ```
 
 **Linux/Mac (Bash):**
+
 ```bash
 # Run the setup script (installs dependencies and starts proxy)
 ./scripts/start-cors-proxy.sh
 ```
 
 **Manual Setup:**
+
 ```bash
 # Install dependencies
 npm install express http-proxy-middleware cors
@@ -88,14 +93,17 @@ node cors-proxy.js
 ```
 
 #### How it Works:
+
 - Proxy runs on `http://localhost:3001`
 - Forwards all requests to your CouchDB server (`http://157.247.1.102:5984`)
 - Adds proper CORS headers to all responses
 - Handles authentication and all HTTP methods
 
 #### Update Your App:
+
 Once the proxy is running, update your CouchDB URL in the test page from:
-- `http://157.247.1.102:5984/` 
+
+- `http://157.247.1.102:5984/`
 - To: `http://localhost:3001/`
 
 ### 2. Direct CORS Configuration (If you have CouchDB admin access)
@@ -113,22 +121,25 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 
-app.use('/couchdb', createProxyMiddleware({
-  target: 'http://157.247.1.102:5984',
-  changeOrigin: true,
-  pathRewrite: {
-    '^/couchdb': '', // remove /couchdb prefix
-  },
-  onProxyRes: function (proxyRes, req, res) {
-    proxyRes.headers['Access-Control-Allow-Origin'] = '*';
-    proxyRes.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS';
-    proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization';
-    proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
-  }
-}));
+app.use(
+	'/couchdb',
+	createProxyMiddleware({
+		target: 'http://157.247.1.102:5984',
+		changeOrigin: true,
+		pathRewrite: {
+			'^/couchdb': '' // remove /couchdb prefix
+		},
+		onProxyRes: function (proxyRes, req, res) {
+			proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+			proxyRes.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS';
+			proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization';
+			proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
+		}
+	})
+);
 
 app.listen(3001, () => {
-  console.log('Proxy server running on http://localhost:3001');
+	console.log('Proxy server running on http://localhost:3001');
 });
 ```
 
@@ -147,11 +158,13 @@ This eliminates CORS issues and provides better security.
 ### Check HTTPS Server Accessibility
 
 1. **DNS Resolution**:
+
    ```bash
    nslookup couchdb.ettingshaus14.synology.me
    ```
 
 2. **Port Connectivity**:
+
    ```bash
    telnet couchdb.ettingshaus14.synology.me 443
    ```

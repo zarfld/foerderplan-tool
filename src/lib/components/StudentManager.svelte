@@ -1,19 +1,24 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { saveStudentList, loadStudentList, saveAssessment, loadLatestAssessment } from '$lib/utils/database';
-	
+	import {
+		saveStudentList,
+		loadStudentList,
+		saveAssessment,
+		loadLatestAssessment
+	} from '$lib/utils/database';
+
 	export let db: any;
 	export let currentStudent: string = '';
 	export let currentData: any = {};
 	export let hasUnsavedChanges: boolean = false;
-	
+
 	const dispatch = createEventDispatcher();
-	
+
 	let students: string[] = [];
 	let newStudentName = '';
 	let isAddingStudent = false;
 	let showStudentList = false;
-	
+
 	// Load student list on component mount
 	async function loadStudents() {
 		if (db) {
@@ -24,7 +29,7 @@
 			}
 		}
 	}
-	
+
 	// Add new student to the list
 	async function addStudent() {
 		if (newStudentName.trim() && !students.includes(newStudentName.trim())) {
@@ -38,11 +43,11 @@
 			}
 		}
 	}
-	
+
 	// Remove student from the list
 	async function removeStudent(studentName: string) {
 		if (confirm(`Möchten Sie ${studentName} wirklich aus der Liste entfernen?`)) {
-			students = students.filter(s => s !== studentName);
+			students = students.filter((s) => s !== studentName);
 			try {
 				await saveStudentList(db, students);
 				if (currentStudent === studentName) {
@@ -54,35 +59,36 @@
 			}
 		}
 	}
-	
+
 	let isChangingStudent = false;
 	let pendingStudentChange = '';
-	
+
 	// Select a student and load their latest assessment
 	async function selectStudent(studentName: string) {
 		console.log('selectStudent called with:', studentName, 'current:', currentStudent);
-		
+
 		// If no student name provided, do nothing
 		if (!studentName) {
 			console.log('No student name provided, returning');
 			return;
 		}
-		
+
 		// If same student selected, do nothing
 		if (studentName === currentStudent) {
 			console.log('Same student already selected, returning');
 			return;
 		}
-		
+
 		// Check if there's unsaved data for current student
-		const hasUnsavedData = currentStudent && (hasUnsavedChanges || Object.keys(currentData).length > 0);
-		
+		const hasUnsavedData =
+			currentStudent && (hasUnsavedChanges || Object.keys(currentData).length > 0);
+
 		if (hasUnsavedData) {
 			// Ask user if they want to save current data
 			const shouldSave = confirm(
 				`Möchten Sie das aktuelle Assessment für "${currentStudent}" speichern, bevor Sie zu "${studentName}" wechseln?`
 			);
-			
+
 			if (shouldSave) {
 				try {
 					await saveAssessment(db, currentStudent, currentData);
@@ -96,13 +102,13 @@
 				}
 			}
 		}
-		
+
 		// Load new student's latest assessment
 		isChangingStudent = true;
 		try {
 			const latestData = await loadLatestAssessment(db, studentName);
 			currentStudent = studentName;
-			
+
 			// Update currentData to reflect the loaded data
 			if (latestData && Object.keys(latestData).length > 0) {
 				currentData = { ...latestData };
@@ -118,12 +124,12 @@
 					foerdermassnahmen: {}
 				};
 			}
-			
-			dispatch('studentChanged', { 
-				student: studentName, 
-				data: currentData 
+
+			dispatch('studentChanged', {
+				student: studentName,
+				data: currentData
 			});
-			
+
 			console.log('Switched to student:', studentName, 'with data:', currentData);
 		} catch (error) {
 			console.error('Error loading student data:', error);
@@ -138,15 +144,15 @@
 				mathematik: { assessments: [] },
 				foerdermassnahmen: {}
 			};
-			dispatch('studentChanged', { 
-				student: studentName, 
-				data: currentData 
+			dispatch('studentChanged', {
+				student: studentName,
+				data: currentData
 			});
 		} finally {
 			isChangingStudent = false;
 		}
 	}
-	
+
 	// Save current assessment manually
 	async function saveCurrentAssessment() {
 		if (currentStudent && Object.keys(currentData).length > 0) {
@@ -158,7 +164,7 @@
 			}
 		}
 	}
-	
+
 	// Handle dropdown selection
 	function handleStudentSelection() {
 		console.log('Dropdown selection changed to:', currentStudent);
@@ -170,23 +176,23 @@
 			console.log('No student selected, skipping selectStudent call');
 		}
 	}
-	
+
 	// Force select student (bypasses same student check)
 	async function selectStudentForced(studentName: string) {
 		console.log('selectStudentForced called with:', studentName);
-		
+
 		// If no student name provided, do nothing
 		if (!studentName) {
 			console.log('No student name provided, returning');
 			return;
 		}
-		
+
 		// Load new student's latest assessment (bypass same student check)
 		isChangingStudent = true;
 		try {
 			const latestData = await loadLatestAssessment(db, studentName);
 			currentStudent = studentName;
-			
+
 			// Update currentData to reflect the loaded data
 			if (latestData && Object.keys(latestData).length > 0) {
 				currentData = { ...latestData };
@@ -204,12 +210,12 @@
 				};
 				console.log('No existing data, initialized empty structure for:', studentName);
 			}
-			
-			dispatch('studentChanged', { 
-				student: studentName, 
-				data: currentData 
+
+			dispatch('studentChanged', {
+				student: studentName,
+				data: currentData
 			});
-			
+
 			console.log('Switched to student:', studentName, 'with data:', currentData);
 		} catch (error) {
 			console.error('Error loading student data:', error);
@@ -224,9 +230,9 @@
 				mathematik: { assessments: [] },
 				foerdermassnahmen: {}
 			};
-			dispatch('studentChanged', { 
-				student: studentName, 
-				data: currentData 
+			dispatch('studentChanged', {
+				student: studentName,
+				data: currentData
 			});
 		} finally {
 			isChangingStudent = false;
@@ -246,9 +252,9 @@
 			<div class="unsaved-indicator">⚠️ Ungespeicherte Änderungen</div>
 		{/if}
 		<div class="select-container">
-			<select 
-				id="student-select" 
-				bind:value={currentStudent} 
+			<select
+				id="student-select"
+				bind:value={currentStudent}
 				on:change={handleStudentSelection}
 				disabled={isChangingStudent}
 			>
@@ -257,18 +263,18 @@
 					<option value={student}>{student}</option>
 				{/each}
 			</select>
-			
-			<button 
-				class="btn btn-sm btn-secondary" 
-				on:click={() => showStudentList = !showStudentList}
+
+			<button
+				class="btn btn-sm btn-secondary"
+				on:click={() => (showStudentList = !showStudentList)}
 				title="Schülerliste verwalten"
 			>
 				👥
 			</button>
-			
+
 			{#if currentStudent}
-				<button 
-					class="btn btn-sm btn-primary" 
+				<button
+					class="btn btn-sm btn-primary"
 					on:click={saveCurrentAssessment}
 					title="Assessment speichern"
 					disabled={isChangingStudent}
@@ -276,17 +282,17 @@
 					💾
 				</button>
 			{/if}
-			
+
 			{#if isChangingStudent}
 				<span class="loading-indicator">🔄 Lade...</span>
 			{/if}
 		</div>
 	</div>
-	
+
 	{#if showStudentList}
 		<div class="student-list-panel">
 			<h3>Schülerliste verwalten</h3>
-			
+
 			<div class="add-student">
 				{#if isAddingStudent}
 					<div class="add-form">
@@ -296,51 +302,51 @@
 							placeholder="Name des neuen Schülers"
 							on:keydown={(e) => e.key === 'Enter' && addStudent()}
 						/>
-						<button class="btn btn-sm btn-primary" on:click={addStudent}>
-							✓ Hinzufügen
-						</button>
-						<button class="btn btn-sm btn-secondary" on:click={() => {isAddingStudent = false; newStudentName = '';}}>
+						<button class="btn btn-sm btn-primary" on:click={addStudent}> ✓ Hinzufügen </button>
+						<button
+							class="btn btn-sm btn-secondary"
+							on:click={() => {
+								isAddingStudent = false;
+								newStudentName = '';
+							}}
+						>
 							✗ Abbrechen
 						</button>
 					</div>
 				{:else}
-					<button class="btn btn-primary" on:click={() => isAddingStudent = true}>
+					<button class="btn btn-primary" on:click={() => (isAddingStudent = true)}>
 						➕ Neuer Schüler
 					</button>
 				{/if}
 			</div>
-			
+
 			<div class="student-list">
 				{#each students as student}
 					<div class="student-item" class:active={student === currentStudent}>
 						<span class="student-name">{student}</span>
 						<div class="student-actions">
-							<button 
-								class="btn btn-sm btn-primary" 
+							<button
+								class="btn btn-sm btn-primary"
 								on:click={() => selectStudent(student)}
 								disabled={student === currentStudent}
 							>
 								Auswählen
 							</button>
-							<button 
-								class="btn btn-sm btn-danger" 
-								on:click={() => removeStudent(student)}
-							>
+							<button class="btn btn-sm btn-danger" on:click={() => removeStudent(student)}>
 								🗑️
 							</button>
 						</div>
 					</div>
 				{/each}
-				
+
 				{#if students.length === 0}
-					<p class="no-students">Keine Schüler in der Liste. Fügen Sie einen neuen Schüler hinzu.</p>
+					<p class="no-students">
+						Keine Schüler in der Liste. Fügen Sie einen neuen Schüler hinzu.
+					</p>
 				{/if}
 			</div>
-			
-			<button 
-				class="btn btn-secondary close-panel" 
-				on:click={() => showStudentList = false}
-			>
+
+			<button class="btn btn-secondary close-panel" on:click={() => (showStudentList = false)}>
 				Schließen
 			</button>
 		</div>
@@ -546,10 +552,14 @@
 		margin-bottom: 0.5rem;
 		border: 1px solid #f59e0b;
 	}
-	
+
 	@keyframes spin {
-		from { transform: rotate(0deg); }
-		to { transform: rotate(360deg); }
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	@media (max-width: 768px) {

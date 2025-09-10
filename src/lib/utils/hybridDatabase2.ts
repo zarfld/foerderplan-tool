@@ -47,17 +47,17 @@ export class HybridDatabaseManager {
 	private onlineHandler = () => this.handleOnlineStatus(true);
 	private offlineHandler = () => this.handleOnlineStatus(false);
 	private syncCallbacks: ((status: string) => void)[] = [];
-	
+
 	constructor(config: DatabaseConfig) {
 		this.config = config;
 		this.localStoragePrefix = `foerderplan_${config.localName}_`;
-		
+
 		// Setup online/offline detection
 		if (typeof window !== 'undefined') {
 			window.addEventListener('online', this.onlineHandler);
 			window.addEventListener('offline', this.offlineHandler);
 		}
-		
+
 		// Try to initialize CouchDB if enabled
 		if (config.useCouchDB) {
 			this.initializeCouchDB();
@@ -68,20 +68,23 @@ export class HybridDatabaseManager {
 		try {
 			const environment = this.config.environment || getCurrentEnvironment();
 			this.couchdbManager = new CouchDBSyncManager(couchdbConfig, environment);
-			
+
 			// Test connection
 			const connectionTest = await this.couchdbManager.testConnection();
 			if (connectionTest.success) {
 				this.mode = 'hybrid';
 				this.syncStatus = 'connected';
 				console.log('✅ CouchDB connection established');
-				
+
 				// Start automatic sync if enabled
 				if (this.config.autoSync) {
 					await this.startSync();
 				}
 			} else {
-				console.warn('⚠️ CouchDB connection failed, using localStorage only:', connectionTest.error);
+				console.warn(
+					'⚠️ CouchDB connection failed, using localStorage only:',
+					connectionTest.error
+				);
 				this.mode = 'localStorage';
 				this.syncStatus = 'disconnected';
 			}
@@ -90,7 +93,7 @@ export class HybridDatabaseManager {
 			this.mode = 'localStorage';
 			this.syncStatus = 'error';
 		}
-		
+
 		this.notifySyncCallbacks();
 	}
 
@@ -99,7 +102,7 @@ export class HybridDatabaseManager {
 			try {
 				this.syncStatus = 'syncing';
 				this.notifySyncCallbacks();
-				
+
 				await this.couchdbManager.startSync({
 					live: true,
 					retry: true,
@@ -107,14 +110,14 @@ export class HybridDatabaseManager {
 					heartbeat: 10000,
 					timeout: 30000
 				});
-				
+
 				this.syncStatus = 'connected';
 				console.log('🔄 CouchDB sync started');
 			} catch (error) {
 				console.error('❌ Sync failed:', error);
 				this.syncStatus = 'error';
 			}
-			
+
 			this.notifySyncCallbacks();
 		}
 	}
@@ -130,7 +133,7 @@ export class HybridDatabaseManager {
 
 	private handleOnlineStatus(online: boolean) {
 		this.isOnline = online;
-		
+
 		if (online && this.couchdbManager && this.config.autoSync) {
 			console.log('🌐 Back online - resuming sync');
 			this.startSync();
@@ -144,10 +147,10 @@ export class HybridDatabaseManager {
 	// Public API methods
 	async put(doc: any): Promise<any> {
 		const docWithId = { ...doc, _id: doc._id || this.generateId() };
-		
+
 		// Always save to localStorage first (offline-first)
 		this.saveToLocalStorage(docWithId._id, docWithId);
-		
+
 		// Try to save to CouchDB if available
 		if (this.mode === 'hybrid' && this.couchdbManager) {
 			try {
@@ -158,7 +161,7 @@ export class HybridDatabaseManager {
 				return { id: docWithId._id, ok: true, rev: 'local-' + Date.now() };
 			}
 		}
-		
+
 		return { id: docWithId._id, ok: true, rev: 'local-' + Date.now() };
 	}
 
@@ -171,13 +174,13 @@ export class HybridDatabaseManager {
 				console.warn('⚠️ CouchDB get failed, trying localStorage:', error);
 			}
 		}
-		
+
 		// Fallback to localStorage
 		const localData = this.getFromLocalStorage(id);
 		if (localData) {
 			return localData;
 		}
-		
+
 		throw new Error(`Document not found: ${id}`);
 	}
 
@@ -190,7 +193,7 @@ export class HybridDatabaseManager {
 				console.warn('⚠️ CouchDB allDocs failed, using localStorage:', error);
 			}
 		}
-		
+
 		// Fallback to localStorage
 		return this.getAllFromLocalStorage();
 	}
@@ -198,7 +201,7 @@ export class HybridDatabaseManager {
 	async remove(doc: any): Promise<any> {
 		// Remove from localStorage
 		this.removeFromLocalStorage(doc._id);
-		
+
 		// Try to remove from CouchDB if available
 		if (this.mode === 'hybrid' && this.couchdbManager) {
 			try {
@@ -208,7 +211,7 @@ export class HybridDatabaseManager {
 				return { id: doc._id, ok: true, rev: doc._rev };
 			}
 		}
-		
+
 		return { id: doc._id, ok: true, rev: doc._rev };
 	}
 
@@ -218,13 +221,13 @@ export class HybridDatabaseManager {
 			this.config.useCouchDB = true;
 			await this.initializeCouchDB();
 		}
-		
+
 		if (this.couchdbManager) {
 			this.config.autoSync = true;
 			await this.startSync();
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -263,7 +266,7 @@ export class HybridDatabaseManager {
 	}
 
 	private notifySyncCallbacks(): void {
-		this.syncCallbacks.forEach(callback => {
+		this.syncCallbacks.forEach((callback) => {
 			try {
 				callback(this.syncStatus);
 			} catch (error) {
@@ -275,7 +278,7 @@ export class HybridDatabaseManager {
 	// LocalStorage helper methods
 	private saveToLocalStorage(id: string, data: any): void {
 		if (typeof localStorage === 'undefined') return;
-		
+
 		try {
 			localStorage.setItem(this.localStoragePrefix + id, JSON.stringify(data));
 		} catch (error) {
@@ -285,7 +288,7 @@ export class HybridDatabaseManager {
 
 	private getFromLocalStorage(id: string): any | null {
 		if (typeof localStorage === 'undefined') return null;
-		
+
 		try {
 			const data = localStorage.getItem(this.localStoragePrefix + id);
 			return data ? JSON.parse(data) : null;
@@ -297,7 +300,7 @@ export class HybridDatabaseManager {
 
 	private removeFromLocalStorage(id: string): void {
 		if (typeof localStorage === 'undefined') return;
-		
+
 		try {
 			localStorage.removeItem(this.localStoragePrefix + id);
 		} catch (error) {
@@ -309,10 +312,10 @@ export class HybridDatabaseManager {
 		if (typeof localStorage === 'undefined') {
 			return { total_rows: 0, offset: 0, rows: [] };
 		}
-		
+
 		const docs: any[] = [];
 		const prefix = this.localStoragePrefix;
-		
+
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
 			if (key && key.startsWith(prefix)) {
@@ -327,7 +330,7 @@ export class HybridDatabaseManager {
 				}
 			}
 		}
-		
+
 		return {
 			total_rows: docs.length,
 			offset: 0,
@@ -345,11 +348,11 @@ export class HybridDatabaseManager {
 			window.removeEventListener('online', this.onlineHandler);
 			window.removeEventListener('offline', this.offlineHandler);
 		}
-		
+
 		if (this.couchdbManager) {
 			this.stopSync();
 		}
-		
+
 		this.syncCallbacks = [];
 	}
 }

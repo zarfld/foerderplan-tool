@@ -8,7 +8,5 @@ export default defineConfig({
 	optimizeDeps: {
 		include: ['pouchdb']
 	},
-	plugins: [
-		sveltekit()
-	]
+	plugins: [sveltekit()]
 });

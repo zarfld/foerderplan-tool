@@ -9,26 +9,26 @@ test.describe('Core Application Features', () => {
 
 		// Check main navigation elements
 		await expect(page.locator('nav')).toBeVisible();
-		
+
 		// Check main content areas
 		await expect(page.locator('h1')).toBeVisible();
 	});
 
 	test('demo page is accessible', async ({ page }) => {
 		await page.goto('/demo');
-		
+
 		await expect(page.locator('h1')).toContainText(/Demo/);
 	});
 
 	test('features page is accessible', async ({ page }) => {
 		await page.goto('/features');
-		
+
 		await expect(page.locator('h1')).toContainText(/Features/);
 	});
 
 	test('settings page is accessible', async ({ page }) => {
 		await page.goto('/settings');
-		
+
 		await expect(page.locator('h1')).toContainText(/Einstellungen/);
 	});
 
@@ -50,7 +50,7 @@ test.describe('Core Application Features', () => {
 
 		// Check if the page renders properly on mobile
 		await expect(page.locator('body')).toBeVisible();
-		
+
 		// Navigation should be mobile-friendly
 		const nav = page.locator('nav');
 		if (await nav.isVisible()) {

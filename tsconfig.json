@@ -17,10 +17,7 @@
 		"incremental": true,
 		"tsBuildInfoFile": "./.svelte-kit/tsconfig.tsbuildinfo"
 	},
-	"include": [
-		"src/**/*",
-		"app.d.ts"
-	],
+	"include": ["src/**/*", "app.d.ts"],
 	"exclude": [
 		"node_modules/**/*",
 		".svelte-kit/**/*",

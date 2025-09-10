@@ -1,257 +1,257 @@
 {
-  "type": "VerticalLayout",
-  "elements": [
-    {
-      "type": "Group",
-      "label": "👤 Student Information",
-      "elements": [
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/student/properties/name"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/student/properties/class"
-            }
-          ]
-        },
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/student/properties/dateOfBirth"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/student/properties/schoolYear"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "Group",
-      "label": "📅 Assessment Period",
-      "elements": [
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/assessmentPeriod/properties/startDate"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/assessmentPeriod/properties/endDate"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/assessmentPeriod/properties/period"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "Group",
-      "label": "📚 Subject Assessments",
-      "elements": [
-        {
-          "type": "Control",
-          "scope": "#/properties/subjects",
-          "options": {
-            "showSortButtons": true,
-            "detail": {
-              "type": "VerticalLayout",
-              "elements": [
-                {
-                  "type": "HorizontalLayout",
-                  "elements": [
-                    {
-                      "type": "Control",
-                      "scope": "#/properties/subject"
-                    },
-                    {
-                      "type": "Control",
-                      "scope": "#/properties/currentLevel"
-                    },
-                    {
-                      "type": "Control",
-                      "scope": "#/properties/targetLevel"
-                    }
-                  ]
-                },
-                {
-                  "type": "Control",
-                  "scope": "#/properties/strengths",
-                  "options": {
-                    "multi": true
-                  }
-                },
-                {
-                  "type": "Control",
-                  "scope": "#/properties/areasForImprovement",
-                  "options": {
-                    "multi": true
-                  }
-                },
-                {
-                  "type": "Control",
-                  "scope": "#/properties/supportMeasures",
-                  "options": {
-                    "multi": true
-                  }
-                },
-                {
-                  "type": "Control",
-                  "scope": "#/properties/progress",
-                  "options": {
-                    "multi": true
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "Group",
-      "label": "🎭 Behavioral Assessment",
-      "elements": [
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/behavioralAssessment/properties/socialSkills"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/behavioralAssessment/properties/workHabits"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/behavioralAssessment/properties/participation"
-            }
-          ]
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/behavioralAssessment/properties/behaviorNotes",
-          "options": {
-            "multi": true
-          }
-        }
-      ]
-    },
-    {
-      "type": "Group",
-      "label": "🎯 Learning Goals",
-      "elements": [
-        {
-          "type": "Control",
-          "scope": "#/properties/goals",
-          "options": {
-            "showSortButtons": true,
-            "detail": {
-              "type": "VerticalLayout",
-              "elements": [
-                {
-                  "type": "Control",
-                  "scope": "#/properties/goal",
-                  "options": {
-                    "multi": true
-                  }
-                },
-                {
-                  "type": "HorizontalLayout",
-                  "elements": [
-                    {
-                      "type": "Control",
-                      "scope": "#/properties/timeframe"
-                    },
-                    {
-                      "type": "Control",
-                      "scope": "#/properties/status"
-                    }
-                  ]
-                },
-                {
-                  "type": "Control",
-                  "scope": "#/properties/notes",
-                  "options": {
-                    "multi": true
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "Group",
-      "label": "📝 Teacher Notes",
-      "elements": [
-        {
-          "type": "Control",
-          "scope": "#/properties/teacherNotes/properties/generalObservations",
-          "options": {
-            "multi": true
-          }
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/teacherNotes/properties/parentCommunication",
-          "options": {
-            "multi": true
-          }
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/teacherNotes/properties/recommendations",
-          "options": {
-            "multi": true
-          }
-        }
-      ]
-    },
-    {
-      "type": "Group",
-      "label": "ℹ️ Document Information",
-      "elements": [
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/metadata/properties/teacherName"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/metadata/properties/version"
-            }
-          ]
-        },
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/metadata/properties/createdDate"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/metadata/properties/lastModified"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"type": "VerticalLayout",
+	"elements": [
+		{
+			"type": "Group",
+			"label": "👤 Student Information",
+			"elements": [
+				{
+					"type": "HorizontalLayout",
+					"elements": [
+						{
+							"type": "Control",
+							"scope": "#/properties/student/properties/name"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/student/properties/class"
+						}
+					]
+				},
+				{
+					"type": "HorizontalLayout",
+					"elements": [
+						{
+							"type": "Control",
+							"scope": "#/properties/student/properties/dateOfBirth"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/student/properties/schoolYear"
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "Group",
+			"label": "📅 Assessment Period",
+			"elements": [
+				{
+					"type": "HorizontalLayout",
+					"elements": [
+						{
+							"type": "Control",
+							"scope": "#/properties/assessmentPeriod/properties/startDate"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/assessmentPeriod/properties/endDate"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/assessmentPeriod/properties/period"
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "Group",
+			"label": "📚 Subject Assessments",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/subjects",
+					"options": {
+						"showSortButtons": true,
+						"detail": {
+							"type": "VerticalLayout",
+							"elements": [
+								{
+									"type": "HorizontalLayout",
+									"elements": [
+										{
+											"type": "Control",
+											"scope": "#/properties/subject"
+										},
+										{
+											"type": "Control",
+											"scope": "#/properties/currentLevel"
+										},
+										{
+											"type": "Control",
+											"scope": "#/properties/targetLevel"
+										}
+									]
+								},
+								{
+									"type": "Control",
+									"scope": "#/properties/strengths",
+									"options": {
+										"multi": true
+									}
+								},
+								{
+									"type": "Control",
+									"scope": "#/properties/areasForImprovement",
+									"options": {
+										"multi": true
+									}
+								},
+								{
+									"type": "Control",
+									"scope": "#/properties/supportMeasures",
+									"options": {
+										"multi": true
+									}
+								},
+								{
+									"type": "Control",
+									"scope": "#/properties/progress",
+									"options": {
+										"multi": true
+									}
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"type": "Group",
+			"label": "🎭 Behavioral Assessment",
+			"elements": [
+				{
+					"type": "HorizontalLayout",
+					"elements": [
+						{
+							"type": "Control",
+							"scope": "#/properties/behavioralAssessment/properties/socialSkills"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/behavioralAssessment/properties/workHabits"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/behavioralAssessment/properties/participation"
+						}
+					]
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/behavioralAssessment/properties/behaviorNotes",
+					"options": {
+						"multi": true
+					}
+				}
+			]
+		},
+		{
+			"type": "Group",
+			"label": "🎯 Learning Goals",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/goals",
+					"options": {
+						"showSortButtons": true,
+						"detail": {
+							"type": "VerticalLayout",
+							"elements": [
+								{
+									"type": "Control",
+									"scope": "#/properties/goal",
+									"options": {
+										"multi": true
+									}
+								},
+								{
+									"type": "HorizontalLayout",
+									"elements": [
+										{
+											"type": "Control",
+											"scope": "#/properties/timeframe"
+										},
+										{
+											"type": "Control",
+											"scope": "#/properties/status"
+										}
+									]
+								},
+								{
+									"type": "Control",
+									"scope": "#/properties/notes",
+									"options": {
+										"multi": true
+									}
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"type": "Group",
+			"label": "📝 Teacher Notes",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/teacherNotes/properties/generalObservations",
+					"options": {
+						"multi": true
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/teacherNotes/properties/parentCommunication",
+					"options": {
+						"multi": true
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/teacherNotes/properties/recommendations",
+					"options": {
+						"multi": true
+					}
+				}
+			]
+		},
+		{
+			"type": "Group",
+			"label": "ℹ️ Document Information",
+			"elements": [
+				{
+					"type": "HorizontalLayout",
+					"elements": [
+						{
+							"type": "Control",
+							"scope": "#/properties/metadata/properties/teacherName"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/metadata/properties/version"
+						}
+					]
+				},
+				{
+					"type": "HorizontalLayout",
+					"elements": [
+						{
+							"type": "Control",
+							"scope": "#/properties/metadata/properties/createdDate"
+						},
+						{
+							"type": "Control",
+							"scope": "#/properties/metadata/properties/lastModified"
+						}
+					]
+				}
+			]
+		}
+	]
 }

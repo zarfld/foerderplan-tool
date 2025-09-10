@@ -12,7 +12,7 @@
 	// Accept props to prevent warnings
 	export let data: any = undefined;
 	export let params: any = undefined;
-	
+
 	// Mark as used to prevent warnings
 	void (data && params);
 
@@ -26,7 +26,7 @@
 
 	onMount(async () => {
 		if (!browser) return;
-		
+
 		try {
 			db = await initDB();
 			// Try to load existing data
@@ -38,7 +38,7 @@
 			console.error('Error initializing app:', error);
 		}
 	});
-	
+
 	// Separate onMount for keyboard shortcuts to avoid async issues
 	onMount(() => {
 		// Add keyboard shortcuts
@@ -62,7 +62,7 @@
 		};
 
 		document.addEventListener('keydown', handleKeyDown);
-		
+
 		// Return cleanup function
 		return () => {
 			document.removeEventListener('keydown', handleKeyDown);
@@ -72,14 +72,14 @@
 	function handleDataChange(event: CustomEvent) {
 		currentData = event.detail.data;
 		hasUnsavedChanges = true;
-		
+
 		// Auto-save to student-specific slot with versioning
 		if (db && currentStudent) {
 			// Save as student-specific assessment with timestamp
 			const timestamp = new Date().toISOString();
 			saveAssessment(db, currentStudent, currentData);
 			console.log(`Auto-saved assessment for ${currentStudent} at ${timestamp}`);
-			
+
 			// Also save to general current slot for continuity
 			saveData(db, 'current-foerderplan', currentData);
 			lastSavedData = { ...currentData };
@@ -97,13 +97,13 @@
 		console.log('Main page handleStudentChanged:', student, studentData);
 		currentStudent = student;
 		// Force complete data replacement to trigger reactivity
-		currentData = {};  // Clear first
+		currentData = {}; // Clear first
 		setTimeout(() => {
 			currentData = { ...studentData }; // Then set new data
 			lastSavedData = { ...currentData };
 			hasUnsavedChanges = false;
 			console.log('Main page received student change:', student, currentData);
-			
+
 			// Also save to general current slot for continuity
 			if (db) {
 				saveData(db, 'current-foerderplan', currentData);
@@ -123,7 +123,7 @@
 	function handleAssessmentSaved(event: CustomEvent) {
 		const { student } = event.detail;
 		saveStatus = `Assessment für ${student} gespeichert ✓`;
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	async function handleSaveJSON() {
@@ -131,7 +131,10 @@
 			// Save to database first
 			try {
 				await saveAssessment(db, currentStudent, data);
-				await saveDocument(currentData, `foerderplan-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`);
+				await saveDocument(
+					currentData,
+					`foerderplan-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`
+				);
 				saveStatus = `JSON für ${currentStudent} exportiert ✓`;
 			} catch (error) {
 				saveStatus = 'Fehler beim Speichern ✗';
@@ -140,7 +143,7 @@
 			await saveDocument(currentData, 'foerderplan.json');
 			saveStatus = 'JSON exportiert ✓';
 		}
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	async function handleExportPDF() {
@@ -148,7 +151,10 @@
 			// Save to database first
 			try {
 				await saveAssessment(db, currentStudent, data);
-				await exportToPDF(data, `foerderplan-${currentStudent}-${new Date().toISOString().split('T')[0]}.pdf`);
+				await exportToPDF(
+					data,
+					`foerderplan-${currentStudent}-${new Date().toISOString().split('T')[0]}.pdf`
+				);
 				saveStatus = `PDF für ${currentStudent} exportiert ✓`;
 			} catch (error) {
 				saveStatus = 'Fehler beim PDF Export ✗';
@@ -157,7 +163,7 @@
 			await exportToPDF(currentData, 'foerderplan.pdf');
 			saveStatus = 'PDF exportiert ✓';
 		}
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	function handleNewDocument() {
@@ -166,7 +172,7 @@
 			saveData(db, 'current-foerderplan', currentData);
 		}
 		saveStatus = 'Neues Dokument erstellt ✓';
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	function toggleAnalysis() {
@@ -176,7 +182,10 @@
 
 <svelte:head>
 	<title>Förderplan Tool</title>
-	<meta name="description" content="Digital tool for teachers to record and compare student progress" />
+	<meta
+		name="description"
+		content="Digital tool for teachers to record and compare student progress"
+	/>
 </svelte:head>
 
 <main class="container">
@@ -186,11 +195,11 @@
 				<h1>📋 Förderplan Tool</h1>
 				<p>Digital tool for recording and comparing student progress</p>
 			</div>
-			
+
 			<div class="header-status">
 				<SyncStatus />
 			</div>
-			
+
 			<nav class="header-nav">
 				<a href="/demo" class="nav-link">📊 Demo</a>
 				<a href="/timeline-test" class="nav-link">📈 Timeline Test</a>
@@ -198,13 +207,17 @@
 				<a href="/settings" class="nav-link">⚙️ Einstellungen</a>
 			</nav>
 		</div>
-		
+
 		{#if saveStatus}
-			<div class="save-status" class:success={saveStatus.includes('✓')} class:error={saveStatus.includes('✗')}>
+			<div
+				class="save-status"
+				class:success={saveStatus.includes('✓')}
+				class:error={saveStatus.includes('✗')}
+			>
 				{saveStatus}
 			</div>
 		{/if}
-		
+
 		<div class="toolbar">
 			<button on:click={handleNewDocument} class="btn btn-secondary" title="Ctrl+N">
 				🆕 New Document
@@ -218,29 +231,23 @@
 			<button on:click={toggleAnalysis} class="btn btn-info">
 				{showAnalysis ? '📝 Zurück zum Formular' : '📊 Analyse & Vergleich'}
 			</button>
-			<a href="/demo" class="btn btn-info">
-				🎭 View Demo
-			</a>
+			<a href="/demo" class="btn btn-info"> 🎭 View Demo </a>
 		</div>
 	</header>
 
 	{#if !showAnalysis}
 		<!-- Student Management -->
-		<StudentManager 
-			{db} 
-			bind:currentStudent 
-			bind:currentData={currentData}
+		<StudentManager
+			{db}
+			bind:currentStudent
+			bind:currentData
 			{hasUnsavedChanges}
 			on:studentChanged={handleStudentChanged}
 			on:assessmentSaved={handleAssessmentSaved}
 		/>
 
 		<!-- Assessment History -->
-		<AssessmentHistory 
-			{db} 
-			{currentStudent}
-			on:loadAssessment={handleAssessmentLoaded}
-		/>
+		<AssessmentHistory {db} {currentStudent} on:loadAssessment={handleAssessmentLoaded} />
 
 		<!-- Assessment Form -->
 		<div class="form-container">
@@ -264,14 +271,15 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 2rem;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+		font-family:
+			-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 	}
 
 	header {
 		text-align: center;
 		margin-bottom: 2rem;
 	}
-	
+
 	.header-top {
 		display: flex;
 		justify-content: space-between;
@@ -279,7 +287,7 @@
 		margin-bottom: 1rem;
 		gap: 1rem;
 	}
-	
+
 	.title-section {
 		text-align: left;
 		flex: 1;
@@ -288,14 +296,14 @@
 	.header-status {
 		flex: 0 0 auto;
 	}
-	
+
 	.header-nav {
 		display: flex;
 		gap: 1rem;
 		align-items: center;
 		flex: 0 0 auto;
 	}
-	
+
 	.nav-link {
 		color: #3b82f6;
 		text-decoration: none;
@@ -305,7 +313,7 @@
 		font-weight: 500;
 		font-size: 0.9rem;
 	}
-	
+
 	.nav-link:hover {
 		background-color: #f3f4f6;
 		text-decoration: none;
@@ -470,13 +478,13 @@
 		.container {
 			padding: 1rem;
 		}
-		
+
 		.header-top {
 			flex-direction: column;
 			gap: 1rem;
 			align-items: center;
 		}
-		
+
 		.title-section {
 			text-align: center;
 		}
@@ -490,12 +498,12 @@
 			justify-content: center;
 			flex-wrap: wrap;
 		}
-		
+
 		.toolbar {
 			flex-direction: column;
 			align-items: center;
 		}
-		
+
 		.btn {
 			width: 100%;
 			max-width: 300px;

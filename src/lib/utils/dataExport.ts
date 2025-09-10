@@ -4,16 +4,16 @@ export async function saveDocument(data: any, filename: string): Promise<void> {
 	try {
 		const dataStr = JSON.stringify(data, null, 2);
 		const dataBlob = new Blob([dataStr], { type: 'application/json' });
-		
+
 		const url = URL.createObjectURL(dataBlob);
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = filename;
-		
+
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
-		
+
 		URL.revokeObjectURL(url);
 		console.log('Document saved successfully:', filename);
 	} catch (error) {
@@ -43,7 +43,7 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 			let x = 20;
 			pdf.setDrawColor(0);
 			pdf.setLineWidth(0.1);
-			
+
 			cols.forEach((col, i) => {
 				if (isHeader) {
 					pdf.setFillColor(240, 240, 240);
@@ -55,7 +55,7 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 					pdf.setFont('helvetica', 'normal');
 					pdf.setFontSize(7);
 				}
-				
+
 				const text = col.length > 30 ? col.substring(0, 27) + '...' : col;
 				pdf.text(text, x + 1, y + 5);
 				x += colWidths[i];
@@ -72,7 +72,7 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 		if (data.student || data.assessmentPeriod) {
 			pdf.setFontSize(10);
 			pdf.setFont('helvetica', 'normal');
-			
+
 			const info = [
 				data.assessmentPeriod?.timeframe ? `Zeitraum: ${data.assessmentPeriod.timeframe}` : '',
 				data.student?.class ? `Klasse: ${data.student.class}` : '',
@@ -80,7 +80,7 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 				data.student?.name ? `SchülerIn: ${data.student.name}` : ''
 			].filter(Boolean);
 
-			info.forEach(line => {
+			info.forEach((line) => {
 				pdf.text(line, 20, yPosition);
 				yPosition += 6;
 			});
@@ -95,10 +95,10 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 			{ key: 'mathematik', title: 'Mathematik' }
 		];
 
-		subjects.forEach(subject => {
+		subjects.forEach((subject) => {
 			if (data[subject.key]?.assessments) {
 				checkNewPage(50);
-				
+
 				// Section title
 				pdf.setFontSize(12);
 				pdf.setFont('helvetica', 'bold');
@@ -107,7 +107,12 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 
 				// Table header
 				const colWidths = [90, 15, 20, 15, 40]; // Task, ja, teilw, nein, Anmerkung
-				drawTableRow(['Beobachtungsaufgabe/Förderansatz', 'ja', 'teilw', 'nein', 'Anmerkung'], colWidths, yPosition, true);
+				drawTableRow(
+					['Beobachtungsaufgabe/Förderansatz', 'ja', 'teilw', 'nein', 'Anmerkung'],
+					colWidths,
+					yPosition,
+					true
+				);
 				yPosition += 8;
 
 				// Table rows
@@ -118,11 +123,11 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 					const teilweise = status === 'teilweise' ? 'X' : '';
 					const nein = status === 'nein' ? 'X' : '';
 					const notes = assessment.notes || '';
-					
+
 					drawTableRow([assessment.task, ja, teilweise, nein, notes], colWidths, yPosition);
 					yPosition += 8;
 				});
-				
+
 				yPosition += 10;
 			}
 		});
@@ -130,7 +135,7 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 		// Fördermaßnahmen
 		if (data.foerdermassnahmen) {
 			checkNewPage(60);
-			
+
 			pdf.setFontSize(12);
 			pdf.setFont('helvetica', 'bold');
 			pdf.text('Fördermaßnahmen', 20, yPosition);
@@ -143,10 +148,10 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 				{ key: 'mathematikFoerderung', title: 'Fördermaßnahmen Mathematik' }
 			];
 
-			measures.forEach(measure => {
+			measures.forEach((measure) => {
 				if (data.foerdermassnahmen[measure.key]) {
 					checkNewPage(30);
-					
+
 					pdf.setFontSize(10);
 					pdf.setFont('helvetica', 'bold');
 					pdf.text(measure.title, 20, yPosition);
@@ -160,14 +165,14 @@ export async function exportToPDF(data: any, filename: string): Promise<void> {
 						const applied = item.applied ? '[X]' : '[ ]';
 						const text = `${applied} ${item.measure}`;
 						pdf.text(text, 25, yPosition);
-						
+
 						if (item.notes) {
 							pdf.text(`Bemerkung: ${item.notes}`, 30, yPosition + 3);
 							yPosition += 3;
 						}
 						yPosition += 5;
 					});
-					
+
 					yPosition += 5;
 				}
 			});

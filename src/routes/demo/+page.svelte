@@ -14,7 +14,7 @@
 
 	onMount(async () => {
 		if (!browser) return;
-		
+
 		try {
 			db = await initDB();
 			// Try to load existing data
@@ -39,7 +39,7 @@
 		const { student, data: studentData } = event.detail;
 		currentStudent = student;
 		data = studentData;
-		
+
 		// Also save to generic demo slot
 		if (db) {
 			saveData(db, 'demo-foerderplan', data);
@@ -49,29 +49,35 @@
 	function handleAssessmentSaved(event: CustomEvent) {
 		const { student } = event.detail;
 		saveStatus = `Assessment für ${student} gespeichert ✓`;
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	async function handleSaveJSON() {
 		if (currentStudent && Object.keys(data).length > 0) {
-			await saveDocument(data, `foerderplan-demo-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`);
+			await saveDocument(
+				data,
+				`foerderplan-demo-${currentStudent}-${new Date().toISOString().split('T')[0]}.json`
+			);
 			saveStatus = `JSON für ${currentStudent} exportiert ✓`;
 		} else {
 			await saveDocument(data, 'foerderplan-demo.json');
 			saveStatus = 'JSON exportiert ✓';
 		}
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	async function handleExportPDF() {
 		if (currentStudent && Object.keys(data).length > 0) {
-			await exportToPDF(data, `foerderplan-demo-${currentStudent}-${new Date().toISOString().split('T')[0]}.pdf`);
+			await exportToPDF(
+				data,
+				`foerderplan-demo-${currentStudent}-${new Date().toISOString().split('T')[0]}.pdf`
+			);
 			saveStatus = `PDF für ${currentStudent} exportiert ✓`;
 		} else {
 			await exportToPDF(data, 'foerderplan-demo.pdf');
 			saveStatus = 'PDF exportiert ✓';
 		}
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 
 	function resetToExample() {
@@ -80,7 +86,7 @@
 			saveData(db, 'demo-foerderplan', data);
 		}
 		saveStatus = 'Zurück zu Beispieldaten ✓';
-		setTimeout(() => saveStatus = '', 3000);
+		setTimeout(() => (saveStatus = ''), 3000);
 	}
 </script>
 
@@ -93,34 +99,30 @@
 	<header>
 		<h1>📋 Förderplan Tool - Demo</h1>
 		<p>Example form with sample data and student management</p>
-		
+
 		{#if saveStatus}
-			<div class="save-status" class:success={saveStatus.includes('✓')} class:error={saveStatus.includes('✗')}>
+			<div
+				class="save-status"
+				class:success={saveStatus.includes('✓')}
+				class:error={saveStatus.includes('✗')}
+			>
 				{saveStatus}
 			</div>
 		{/if}
-		
+
 		<div class="toolbar">
-			<a href="/" class="btn btn-secondary">
-				← Back to Main
-			</a>
-			<button on:click={resetToExample} class="btn btn-secondary">
-				🔄 Reset to Example
-			</button>
-			<button on:click={handleSaveJSON} class="btn btn-primary">
-				💾 Save JSON
-			</button>
-			<button on:click={handleExportPDF} class="btn btn-primary">
-				📄 Export PDF
-			</button>
+			<a href="/" class="btn btn-secondary"> ← Back to Main </a>
+			<button on:click={resetToExample} class="btn btn-secondary"> 🔄 Reset to Example </button>
+			<button on:click={handleSaveJSON} class="btn btn-primary"> 💾 Save JSON </button>
+			<button on:click={handleExportPDF} class="btn btn-primary"> 📄 Export PDF </button>
 		</div>
 	</header>
 
 	<!-- Student Management -->
 	{#if db}
-		<StudentManager 
-			{db} 
-			bind:currentStudent 
+		<StudentManager
+			{db}
+			bind:currentStudent
 			bind:currentData={data}
 			on:studentChanged={handleStudentChanged}
 			on:assessmentSaved={handleAssessmentSaved}
@@ -129,7 +131,11 @@
 
 	<div class="info-box">
 		<h3>📝 Demo Information</h3>
-		<p>This demo page showcases both the form structure and the student management functionality. You can add students, switch between them, and see how assessments are automatically saved and loaded.</p>
+		<p>
+			This demo page showcases both the form structure and the student management functionality. You
+			can add students, switch between them, and see how assessments are automatically saved and
+			loaded.
+		</p>
 	</div>
 
 	<div class="form-container">
@@ -140,7 +146,10 @@
 		{:else}
 			<div class="demo-info">
 				<h3>📝 Demo-Modus</h3>
-				<p>Wählen Sie einen Schüler aus oder erstellen Sie einen neuen, um die Schülerverwaltung zu testen.</p>
+				<p>
+					Wählen Sie einen Schüler aus oder erstellen Sie einen neuen, um die Schülerverwaltung zu
+					testen.
+				</p>
 			</div>
 		{/if}
 		<FoerderplanForm {data} on:change={handleDataChange} />
@@ -152,7 +161,8 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 2rem;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+		font-family:
+			-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 	}
 
 	header {
@@ -306,12 +316,12 @@
 		.container {
 			padding: 1rem;
 		}
-		
+
 		.toolbar {
 			flex-direction: column;
 			align-items: center;
 		}
-		
+
 		.btn {
 			width: 100%;
 			max-width: 300px;

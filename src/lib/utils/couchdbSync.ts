@@ -87,8 +87,8 @@ export class CouchDBSyncManager {
 			const info = await this.remoteDB.info();
 			return { success: true, info };
 		} catch (error) {
-			return { 
-				success: false, 
+			return {
+				success: false,
 				error: `Connection failed: ${error.message}. This might be due to CORS or network issues.`
 			};
 		}
@@ -117,7 +117,8 @@ export class CouchDBSyncManager {
 				return;
 			}
 
-			this.syncHandler = this.localDB.sync(this.remoteDB, defaultOptions)
+			this.syncHandler = this.localDB
+				.sync(this.remoteDB, defaultOptions)
 				.on('change', (info: any) => {
 					console.log('Sync change:', info);
 					this.emitSyncEvent('change', info);
@@ -257,7 +258,7 @@ export class CouchDBSyncManager {
 		this.stopSync();
 		this.currentDatabase = this.config.databases[environment];
 		this.setupDatabases();
-		
+
 		if (this.isOnline) {
 			await this.startSync();
 		}
@@ -288,13 +289,15 @@ export const defaultCouchDBConfig: CouchDBConfig = {
 // Global sync manager instance
 let syncManager: CouchDBSyncManager | null = null;
 
-export async function initCouchDBSync(environment: 'test' | 'production' | 'backup' = 'test'): Promise<CouchDBSyncManager> {
+export async function initCouchDBSync(
+	environment: 'test' | 'production' | 'backup' = 'test'
+): Promise<CouchDBSyncManager> {
 	if (syncManager) {
 		syncManager.destroy();
 	}
 
 	syncManager = new CouchDBSyncManager(defaultCouchDBConfig, environment);
-	
+
 	// Test connection and start sync if possible
 	const connectionTest = await syncManager.testConnection();
 	if (connectionTest.success) {

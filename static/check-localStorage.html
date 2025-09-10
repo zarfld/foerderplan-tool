@@ -1,121 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>localStorage Data Check</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .item { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
-        .key { font-weight: bold; color: #333; }
-        .value { margin-top: 5px; background: white; padding: 10px; border-radius: 3px; white-space: pre-wrap; }
-        .summary { background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
-        .primary { background: #2196f3; color: white; }
-        .danger { background: #f44336; color: white; }
-    </style>
-</head>
-<body>
-    <h1>🔍 localStorage Data Check</h1>
-    
-    <div class="summary">
-        <h3>Storage Summary</h3>
-        <p><strong>Total localStorage items:</strong> <span id="totalItems">-</span></p>
-        <p><strong>Förderplan items:</strong> <span id="foerderplanItems">-</span></p>
-        <p><strong>Storage size:</strong> <span id="storageSize">-</span> KB</p>
-    </div>
-    
-    <button class="primary" onclick="checkData()">🔄 Refresh Data</button>
-    <button class="danger" onclick="clearFoerderplanData()" style="margin-left: 20px;">🗑️ Clear Förderplan Data</button>
-    
-    <div id="dataContainer"></div>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>localStorage Data Check</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				padding: 20px;
+			}
+			.item {
+				margin: 10px 0;
+				padding: 10px;
+				background: #f5f5f5;
+				border-radius: 5px;
+			}
+			.key {
+				font-weight: bold;
+				color: #333;
+			}
+			.value {
+				margin-top: 5px;
+				background: white;
+				padding: 10px;
+				border-radius: 3px;
+				white-space: pre-wrap;
+			}
+			.summary {
+				background: #e3f2fd;
+				padding: 15px;
+				border-radius: 5px;
+				margin-bottom: 20px;
+			}
+			button {
+				padding: 10px 20px;
+				margin: 5px;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+			.primary {
+				background: #2196f3;
+				color: white;
+			}
+			.danger {
+				background: #f44336;
+				color: white;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>🔍 localStorage Data Check</h1>
 
-    <script>
-        function checkData() {
-            console.log('🔍 Checking localStorage data...');
-            
-            const totalItems = localStorage.length;
-            let foerderplanItems = 0;
-            let totalSize = 0;
-            const foerderplanData = [];
-            
-            // Check all localStorage items
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key) {
-                    const value = localStorage.getItem(key);
-                    if (value) {
-                        totalSize += (key.length + value.length) * 2; // Rough size estimation
-                        
-                        if (key.startsWith('foerderplan_')) {
-                            foerderplanItems++;
-                            foerderplanData.push({
-                                key,
-                                value,
-                                size: (key.length + value.length) * 2
-                            });
-                        }
-                    }
-                }
-            }
-            
-            // Update summary
-            document.getElementById('totalItems').textContent = totalItems;
-            document.getElementById('foerderplanItems').textContent = foerderplanItems;
-            document.getElementById('storageSize').textContent = Math.round(totalSize / 1024);
-            
-            // Display förderplan data
-            const container = document.getElementById('dataContainer');
-            container.innerHTML = '';
-            
-            if (foerderplanData.length === 0) {
-                container.innerHTML = '<div class="item"><h3>❌ No Förderplan data found!</h3><p>This could mean:</p><ul><li>Data was accidentally cleared</li><li>Wrong browser/profile</li><li>Different domain/port</li></ul></div>';
-                return;
-            }
-            
-            foerderplanData.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'item';
-                
-                let parsedValue;
-                try {
-                    parsedValue = JSON.parse(item.value);
-                    parsedValue = JSON.stringify(parsedValue, null, 2);
-                } catch (e) {
-                    parsedValue = item.value;
-                }
-                
-                div.innerHTML = `
+		<div class="summary">
+			<h3>Storage Summary</h3>
+			<p><strong>Total localStorage items:</strong> <span id="totalItems">-</span></p>
+			<p><strong>Förderplan items:</strong> <span id="foerderplanItems">-</span></p>
+			<p><strong>Storage size:</strong> <span id="storageSize">-</span> KB</p>
+		</div>
+
+		<button class="primary" onclick="checkData()">🔄 Refresh Data</button>
+		<button class="danger" onclick="clearFoerderplanData()" style="margin-left: 20px">
+			🗑️ Clear Förderplan Data
+		</button>
+
+		<div id="dataContainer"></div>
+
+		<script>
+			function checkData() {
+				console.log('🔍 Checking localStorage data...');
+
+				const totalItems = localStorage.length;
+				let foerderplanItems = 0;
+				let totalSize = 0;
+				const foerderplanData = [];
+
+				// Check all localStorage items
+				for (let i = 0; i < localStorage.length; i++) {
+					const key = localStorage.key(i);
+					if (key) {
+						const value = localStorage.getItem(key);
+						if (value) {
+							totalSize += (key.length + value.length) * 2; // Rough size estimation
+
+							if (key.startsWith('foerderplan_')) {
+								foerderplanItems++;
+								foerderplanData.push({
+									key,
+									value,
+									size: (key.length + value.length) * 2
+								});
+							}
+						}
+					}
+				}
+
+				// Update summary
+				document.getElementById('totalItems').textContent = totalItems;
+				document.getElementById('foerderplanItems').textContent = foerderplanItems;
+				document.getElementById('storageSize').textContent = Math.round(totalSize / 1024);
+
+				// Display förderplan data
+				const container = document.getElementById('dataContainer');
+				container.innerHTML = '';
+
+				if (foerderplanData.length === 0) {
+					container.innerHTML =
+						'<div class="item"><h3>❌ No Förderplan data found!</h3><p>This could mean:</p><ul><li>Data was accidentally cleared</li><li>Wrong browser/profile</li><li>Different domain/port</li></ul></div>';
+					return;
+				}
+
+				foerderplanData.forEach((item) => {
+					const div = document.createElement('div');
+					div.className = 'item';
+
+					let parsedValue;
+					try {
+						parsedValue = JSON.parse(item.value);
+						parsedValue = JSON.stringify(parsedValue, null, 2);
+					} catch (e) {
+						parsedValue = item.value;
+					}
+
+					div.innerHTML = `
                     <div class="key">🔑 ${item.key}</div>
                     <div style="font-size: 0.8em; color: #666;">Size: ${Math.round(item.size / 1024)} KB</div>
                     <div class="value">${parsedValue}</div>
                 `;
-                container.appendChild(div);
-            });
-            
-            console.log(`✅ Found ${foerderplanItems} förderplan items in localStorage`);
-        }
-        
-        function clearFoerderplanData() {
-            if (!confirm('Are you sure you want to clear all Förderplan data? This cannot be undone!')) {
-                return;
-            }
-            
-            const keys = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('foerderplan_')) {
-                    keys.push(key);
-                }
-            }
-            
-            keys.forEach(key => localStorage.removeItem(key));
-            alert(`Cleared ${keys.length} förderplan items`);
-            checkData();
-        }
-        
-        // Auto-check on load
-        checkData();
-    </script>
-</body>
+					container.appendChild(div);
+				});
+
+				console.log(`✅ Found ${foerderplanItems} förderplan items in localStorage`);
+			}
+
+			function clearFoerderplanData() {
+				if (
+					!confirm('Are you sure you want to clear all Förderplan data? This cannot be undone!')
+				) {
+					return;
+				}
+
+				const keys = [];
+				for (let i = 0; i < localStorage.length; i++) {
+					const key = localStorage.key(i);
+					if (key && key.startsWith('foerderplan_')) {
+						keys.push(key);
+					}
+				}
+
+				keys.forEach((key) => localStorage.removeItem(key));
+				alert(`Cleared ${keys.length} förderplan items`);
+				checkData();
+			}
+
+			// Auto-check on load
+			checkData();
+		</script>
+	</body>
 </html>

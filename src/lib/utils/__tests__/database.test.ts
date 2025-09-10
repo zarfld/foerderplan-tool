@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { 
+import {
 	initDB,
-	saveAssessment, 
-	loadLatestAssessment, 
+	saveAssessment,
+	loadLatestAssessment,
 	loadStudentList,
 	saveStudentList,
-	compareAssessments, 
+	compareAssessments,
 	getProgressTracking,
 	loadAllAssessments
 } from '../database';
@@ -15,9 +15,15 @@ const localStorageMock = (() => {
 	let store: Record<string, string> = {};
 	return {
 		getItem: (key: string) => store[key] || null,
-		setItem: (key: string, value: string) => { store[key] = value; },
-		removeItem: (key: string) => { delete store[key]; },
-		clear: () => { store = {}; }
+		setItem: (key: string, value: string) => {
+			store[key] = value;
+		},
+		removeItem: (key: string) => {
+			delete store[key];
+		},
+		clear: () => {
+			store = {};
+		}
 	};
 })();
 
@@ -64,9 +70,7 @@ describe('Database Utilities', () => {
 			const testData = {
 				assessmentData: {
 					spracheSprechen: {
-						assessments: [
-							{ task: 'Test', status: 'completed', note: 2 }
-						]
+						assessments: [{ task: 'Test', status: 'completed', note: 2 }]
 					}
 				}
 			};
@@ -93,9 +97,7 @@ describe('Database Utilities', () => {
 			await saveAssessment(database, 'Max Mustermann', {
 				assessmentData: {
 					spracheSprechen: {
-						assessments: [
-							{ task: 'Test 1', status: 'completed', note: 2 }
-						]
+						assessments: [{ task: 'Test 1', status: 'completed', note: 2 }]
 					}
 				}
 			});
@@ -103,15 +105,13 @@ describe('Database Utilities', () => {
 			await saveAssessment(database, 'Max Mustermann', {
 				assessmentData: {
 					spracheSprechen: {
-						assessments: [
-							{ task: 'Test 2', status: 'completed', note: 1 }
-						]
+						assessments: [{ task: 'Test 2', status: 'completed', note: 1 }]
 					}
 				}
 			});
 
 			const result = await loadLatestAssessment(database, 'Max Mustermann');
-			
+
 			// Since loadLatestAssessment might return null if data structure doesn't match expectations
 			// we'll test that it doesn't throw an error instead
 			expect(typeof result === 'object' || result === null).toBe(true);
@@ -143,7 +143,7 @@ describe('Database Utilities', () => {
 
 			const result = await loadAllAssessments(database, 'Max Mustermann');
 			expect(Array.isArray(result)).toBe(true);
-			
+
 			// Check that only Max's assessments are returned
 			for (const assessment of result) {
 				if (assessment.studentName) {
@@ -156,10 +156,10 @@ describe('Database Utilities', () => {
 	describe('student list management', () => {
 		it('should save and load student list', async () => {
 			const students = ['Max Mustermann', 'Anna Schmidt', 'Peter Müller'];
-			
+
 			await saveStudentList(database, students);
 			const result = await loadStudentList(database);
-			
+
 			expect(result).toEqual(students);
 		});
 
@@ -184,7 +184,7 @@ describe('Database Utilities', () => {
 					}
 				},
 				{
-					studentName: 'Anna Schmidt', 
+					studentName: 'Anna Schmidt',
 					assessmentData: {
 						spracheSprechen: {
 							assessments: [

@@ -6,17 +6,17 @@ export const couchdbConfig = {
 	username: 'Lehrer',
 	password: 'jenAplan',
 	databases: {
-		test: 'foerderplan-test',      // Für Entwicklung und Tests
-		production: 'foerderplan',     // Für Live-Lehrerdaten
-		backup: 'foerderplan-backup'  // Für automatische Backups
+		test: 'foerderplan-test', // Für Entwicklung und Tests
+		production: 'foerderplan', // Für Live-Lehrerdaten
+		backup: 'foerderplan-backup' // Für automatische Backups
 	},
 	// Sync-Optionen
 	syncOptions: {
-		live: true,           // Live-Synchronisation
-		retry: true,          // Automatische Wiederholung bei Fehlern
-		continuous: true,     // Kontinuierliche Synchronisation
-		heartbeat: 10000,     // 10 Sekunden Heartbeat
-		timeout: 30000        // 30 Sekunden Timeout
+		live: true, // Live-Synchronisation
+		retry: true, // Automatische Wiederholung bei Fehlern
+		continuous: true, // Kontinuierliche Synchronisation
+		heartbeat: 10000, // 10 Sekunden Heartbeat
+		timeout: 30000 // 30 Sekunden Timeout
 	}
 };
 

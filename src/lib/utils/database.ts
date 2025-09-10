@@ -14,7 +14,7 @@ let mockDB: any = {
 		console.log(`💾 Saved to localStorage: ${docWithMeta._id}`);
 		return { ok: true, id: docWithMeta._id, rev: docWithMeta._rev };
 	},
-	
+
 	async get(id: string) {
 		const key = `foerderplan_${id}`;
 		const doc = localStorage.getItem(key);
@@ -23,7 +23,7 @@ let mockDB: any = {
 		console.log(`� Retrieved from localStorage: ${id}`);
 		return parsed;
 	},
-	
+
 	async allDocs(options: any = {}) {
 		const keys = [];
 		for (let i = 0; i < localStorage.length; i++) {
@@ -32,8 +32,8 @@ let mockDB: any = {
 				keys.push(key);
 			}
 		}
-		
-		const rows = keys.map(key => {
+
+		const rows = keys.map((key) => {
 			const doc = JSON.parse(localStorage.getItem(key) || '{}');
 			return {
 				id: doc._id,
@@ -42,7 +42,7 @@ let mockDB: any = {
 				doc: options.include_docs ? doc : undefined
 			};
 		});
-		
+
 		console.log(`📚 Retrieved ${rows.length} documents from localStorage`);
 		return {
 			total_rows: rows.length,
@@ -79,9 +79,9 @@ export async function initDB(): Promise<any> {
 	if (db) {
 		return db;
 	}
-	
+
 	console.log('🚀 Initializing Database (localStorage mode)...');
-	
+
 	// For now, use enhanced localStorage
 	// TODO: Add CouchDB sync when PouchDB is properly configured
 	db = mockDB;
@@ -101,7 +101,7 @@ export async function initDB(): Promise<any> {
 export async function saveData(database: any, id: string, data: any): Promise<void> {
 	try {
 		const timestamp = new Date().toISOString();
-		
+
 		// Try to get existing document to get its revision
 		let doc: any = {
 			_id: id,
@@ -170,7 +170,7 @@ export async function deleteDocument(database: any, id: string): Promise<void> {
 export async function syncWithCouchDB(localDB: PouchDB.Database, remoteURL: string): Promise<void> {
 	try {
 		const remoteDB = new PouchDB(remoteURL);
-		
+
 		// Bidirectional sync
 		const sync = localDB.sync(remoteDB, {
 			live: false,
@@ -237,12 +237,16 @@ export async function loadStudentList(database: any): Promise<string[]> {
 	}
 }
 
-export async function saveAssessment(database: any, studentName: string, assessmentData: any): Promise<string> {
+export async function saveAssessment(
+	database: any,
+	studentName: string,
+	assessmentData: any
+): Promise<string> {
 	try {
 		const timestamp = new Date().toISOString();
 		const cleanName = studentName.replace(/[^a-zA-Z0-9äöüßÄÖÜ]/g, '_');
 		const assessmentId = `assessment-${cleanName}-${timestamp}`;
-		
+
 		const doc = {
 			_id: assessmentId,
 			studentName,
@@ -266,7 +270,7 @@ export async function loadLatestAssessment(database: any, studentName: string): 
 		console.log('loadLatestAssessment called for student:', studentName);
 		const cleanName = studentName.replace(/[^a-zA-Z0-9äöüßÄÖÜ]/g, '_');
 		console.log('Clean name:', cleanName);
-		
+
 		const result = await database.allDocs({
 			include_docs: true,
 			startkey: `assessment-${cleanName}-`,
@@ -287,8 +291,11 @@ export async function loadLatestAssessment(database: any, studentName: string): 
 			.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
 		console.log('Found assessments:', assessments.length);
-		console.log('All assessments for debug:', assessments.map((a: any) => ({id: a._id, student: a.studentName, timestamp: a.timestamp})));
-		
+		console.log(
+			'All assessments for debug:',
+			assessments.map((a: any) => ({ id: a._id, student: a.studentName, timestamp: a.timestamp }))
+		);
+
 		if (assessments.length === 0) {
 			console.log('No valid assessments after filtering');
 			return null;
@@ -302,11 +309,14 @@ export async function loadLatestAssessment(database: any, studentName: string): 
 	}
 }
 
-export async function loadAllAssessments(database: PouchDB.Database, studentName?: string): Promise<any[]> {
+export async function loadAllAssessments(
+	database: PouchDB.Database,
+	studentName?: string
+): Promise<any[]> {
 	try {
 		let startkey = 'assessment-';
 		let endkey = 'assessment-\ufff0';
-		
+
 		if (studentName) {
 			const cleanName = studentName.replace(/[^a-zA-Z0-9äöüßÄÖÜ]/g, '_');
 			startkey = `assessment-${cleanName}-`;
@@ -320,9 +330,9 @@ export async function loadAllAssessments(database: PouchDB.Database, studentName
 		});
 
 		const assessments = result.rows
-			.map(row => row.doc as any)
-			.filter(doc => doc && doc.type === 'assessment')
-			.map(doc => ({
+			.map((row) => row.doc as any)
+			.filter((doc) => doc && doc.type === 'assessment')
+			.map((doc) => ({
 				id: doc._id,
 				studentName: doc.studentName,
 				assessmentData: doc.assessmentData,
@@ -340,36 +350,36 @@ export async function loadAllAssessments(database: PouchDB.Database, studentName
 
 export async function compareAssessments(assessments: any[]): Promise<any> {
 	if (assessments.length < 2) {
-		return { 
+		return {
 			error: 'Mindestens zwei Assessments sind für einen Vergleich erforderlich',
-			assessments: assessments.length 
+			assessments: assessments.length
 		};
 	}
 
 	// Remove duplicates by student (keep only the latest assessment per student)
 	const uniqueAssessments = new Map<string, any>();
-	assessments.forEach(assessment => {
+	assessments.forEach((assessment) => {
 		const studentName = assessment.studentName;
 		const existing = uniqueAssessments.get(studentName);
-		
+
 		if (!existing || new Date(assessment.timestamp) > new Date(existing.timestamp)) {
 			uniqueAssessments.set(studentName, assessment);
 		}
 	});
-	
+
 	const finalAssessments = Array.from(uniqueAssessments.values());
-	
+
 	if (finalAssessments.length < 2) {
-		return { 
+		return {
 			error: 'Mindestens zwei verschiedene Schüler sind für einen Vergleich erforderlich',
 			assessments: finalAssessments.length,
-			uniqueStudents: finalAssessments.map(a => a.studentName)
+			uniqueStudents: finalAssessments.map((a) => a.studentName)
 		};
 	}
 
 	const comparison: any = {
-		students: finalAssessments.map(a => a.studentName),
-		timestamps: finalAssessments.map(a => a.timestamp),
+		students: finalAssessments.map((a) => a.studentName),
+		timestamps: finalAssessments.map((a) => a.timestamp),
 		assessmentCount: finalAssessments.length,
 		uniqueStudentCount: finalAssessments.length,
 		commonIssues: {},
@@ -379,32 +389,32 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 	};
 
 	const subjects = ['spracheSprechen', 'lesen', 'schreiben', 'mathematik'];
-	
-	subjects.forEach(subject => {
+
+	subjects.forEach((subject) => {
 		comparison.subjectComparison[subject] = {
 			commonProblems: [],
 			strongAreas: [],
 			mixedResults: []
 		};
 
-		const subjectData = finalAssessments.map(a => a.assessmentData[subject]?.assessments || []);
-		
+		const subjectData = finalAssessments.map((a) => a.assessmentData[subject]?.assessments || []);
+
 		// Find patterns in each task
 		if (subjectData.length > 0 && subjectData[0].length > 0) {
 			subjectData[0].forEach((task: any, taskIndex: number) => {
-				const responses = subjectData.map(data => data[taskIndex]?.status || '');
-				const notes = subjectData.map(data => data[taskIndex]?.notes || '');
-				
-				const jaCount = responses.filter(r => r === 'ja').length;
-				const teilweiseCount = responses.filter(r => r === 'teilweise').length;
-				const neinCount = responses.filter(r => r === 'nein').length;
-				
+				const responses = subjectData.map((data) => data[taskIndex]?.status || '');
+				const notes = subjectData.map((data) => data[taskIndex]?.notes || '');
+
+				const jaCount = responses.filter((r) => r === 'ja').length;
+				const teilweiseCount = responses.filter((r) => r === 'teilweise').length;
+				const neinCount = responses.filter((r) => r === 'nein').length;
+
 				const analysisItem = {
 					task: task.task,
 					responses,
-					notes: notes.filter(n => n.trim() !== ''),
+					notes: notes.filter((n) => n.trim() !== ''),
 					statistics: { jaCount, teilweiseCount, neinCount },
-					students: finalAssessments.map(a => a.studentName)
+					students: finalAssessments.map((a) => a.studentName)
 				};
 
 				// Categorize based on response patterns (use finalAssessments length)
@@ -421,29 +431,38 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 
 	// Analyze Fördermaßnahmen
 	if (finalAssessments[0].assessmentData.foerdermassnahmen) {
-		const measureAreas = ['horenUnterscheiden', 'sprechenVerstehen', 'optischeWahrnehmung', 'mathematikFoerderung'];
-		
-		measureAreas.forEach(area => {
+		const measureAreas = [
+			'horenUnterscheiden',
+			'sprechenVerstehen',
+			'optischeWahrnehmung',
+			'mathematikFoerderung'
+		];
+
+		measureAreas.forEach((area) => {
 			comparison.foerdermassnahmenComparison[area] = {
 				commonlyApplied: [],
 				rarelyApplied: [],
 				effectiveNotes: []
 			};
 
-			const measureData = finalAssessments.map(a => a.assessmentData.foerdermassnahmen?.[area] || []);
-			
+			const measureData = finalAssessments.map(
+				(a) => a.assessmentData.foerdermassnahmen?.[area] || []
+			);
+
 			if (measureData.length > 0 && measureData[0].length > 0) {
 				measureData[0].forEach((measure: any, measureIndex: number) => {
-					const applied = measureData.map(data => data[measureIndex]?.applied || false);
+					const applied = measureData.map((data) => data[measureIndex]?.applied || false);
 					const appliedCount = applied.filter(Boolean).length;
-					const notes = measureData.map(data => data[measureIndex]?.notes || '').filter(n => n.trim() !== '');
-					
+					const notes = measureData
+						.map((data) => data[measureIndex]?.notes || '')
+						.filter((n) => n.trim() !== '');
+
 					const analysisItem = {
 						measure: measure.measure,
 						appliedCount,
 						percentage: Math.round((appliedCount / finalAssessments.length) * 100),
 						notes,
-						students: finalAssessments.map(a => a.studentName)
+						students: finalAssessments.map((a) => a.studentName)
 					};
 
 					if (appliedCount >= Math.ceil(finalAssessments.length * 0.6)) {
@@ -467,10 +486,13 @@ export async function compareAssessments(assessments: any[]): Promise<any> {
 	return comparison;
 }
 
-export async function getProgressTracking(database: PouchDB.Database, studentName: string): Promise<any> {
+export async function getProgressTracking(
+	database: PouchDB.Database,
+	studentName: string
+): Promise<any> {
 	try {
 		const assessments = await loadAllAssessments(database, studentName);
-		
+
 		if (assessments.length < 2) {
 			return {
 				student: studentName,
@@ -481,7 +503,7 @@ export async function getProgressTracking(database: PouchDB.Database, studentNam
 
 		// Sort by timestamp (oldest first for progress tracking)
 		assessments.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-		
+
 		const progress: any = {
 			student: studentName,
 			assessmentCount: assessments.length,
@@ -497,23 +519,24 @@ export async function getProgressTracking(database: PouchDB.Database, studentNam
 		let improvementCount = 0;
 		let deteriorationCount = 0;
 
-		subjects.forEach(subject => {
+		subjects.forEach((subject) => {
 			const firstAssessment = assessments[0].assessmentData[subject]?.assessments || [];
-			const latestAssessment = assessments[assessments.length - 1].assessmentData[subject]?.assessments || [];
-			
+			const latestAssessment =
+				assessments[assessments.length - 1].assessmentData[subject]?.assessments || [];
+
 			const improvements: any[] = [];
 			const deteriorations: any[] = [];
-			
+
 			firstAssessment.forEach((task: any, index: number) => {
 				if (latestAssessment[index]) {
 					const oldStatus = task.status;
 					const newStatus = latestAssessment[index].status;
-					
+
 					// Define status values for comparison
-					const statusValue: { [key: string]: number } = { 'nein': 1, 'teilweise': 2, 'ja': 3, '': 0 };
+					const statusValue: { [key: string]: number } = { nein: 1, teilweise: 2, ja: 3, '': 0 };
 					const oldValue = statusValue[oldStatus as string] || 0;
 					const newValue = statusValue[newStatus as string] || 0;
-					
+
 					if (newValue > oldValue) {
 						improvements.push({
 							task: task.task,
@@ -531,7 +554,7 @@ export async function getProgressTracking(database: PouchDB.Database, studentNam
 					}
 				}
 			});
-			
+
 			progress.subjectProgress[subject] = {
 				improvements,
 				deteriorations,
