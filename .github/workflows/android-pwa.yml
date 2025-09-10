@@ -43,19 +43,17 @@ jobs:
         run: |
           npx playwright install chromium
 
-      - name: Start preview server
-        run: |
-          npm run preview &
-          sleep 10
-          curl http://localhost:4173 || echo "Server not ready yet"
-
       - name: Test PWA installation on mobile
         run: |
-          npx playwright test --config=playwright.config.ts --project="Mobile Chrome" --grep="PWA"
+          npx playwright test --config=playwright.config.android.ts --project="Mobile Chrome" --grep="PWA"
+        env:
+          CI: true
 
       - name: Test offline functionality
         run: |
-          npx playwright test --config=playwright.config.ts --project="Mobile Chrome" --grep="offline"
+          npx playwright test --config=playwright.config.android.ts --project="Mobile Chrome" --grep="offline"
+        env:
+          CI: true
 
       - name: Generate PWA audit
         run: |
