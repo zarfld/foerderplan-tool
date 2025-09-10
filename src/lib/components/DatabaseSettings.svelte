@@ -533,8 +533,7 @@
 			grid-template-columns: 1fr;
 		}
 
-		.button-group,
-		.sync-controls {
+		.button-group {
 			flex-direction: column;
 		}
 	}

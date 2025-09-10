@@ -1,4 +1,5 @@
 // CouchDB Sync Database - Real PouchDB with CouchDB synchronization
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import PouchDB from 'pouchdb';
 import HttpAdapter from 'pouchdb-adapter-http';

@@ -3,7 +3,7 @@
 	export let params: any = undefined; // Accept params prop to prevent warning
 
 	// Mark as used to prevent warnings
-	params;
+	console.log('Test page params:', params);
 </script>
 
 <svelte:head>

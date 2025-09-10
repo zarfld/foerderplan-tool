@@ -2,7 +2,7 @@
 // Provides offline-first storage with optional CouchDB synchronization
 
 // Simple mock for localStorage operations
-let mockDB: any = {
+const mockDB: any = {
 	async put(doc: any) {
 		const key = `foerderplan_${doc._id}`;
 		const docWithMeta = {
@@ -103,7 +103,7 @@ export async function saveData(database: any, id: string, data: any): Promise<vo
 		const timestamp = new Date().toISOString();
 
 		// Try to get existing document to get its revision
-		let doc: any = {
+		const doc: any = {
 			_id: id,
 			data: data,
 			lastModified: timestamp
@@ -200,7 +200,7 @@ export async function syncWithCouchDB(localDB: PouchDB.Database, remoteURL: stri
 export async function saveStudentList(database: any, students: string[]): Promise<void> {
 	try {
 		const timestamp = new Date().toISOString();
-		let doc: any = {
+		const doc: any = {
 			_id: 'student-list',
 			students,
 			lastModified: timestamp,
