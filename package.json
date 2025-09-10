@@ -21,6 +21,7 @@
 		"test:android": "playwright test --project=\"Mobile Chrome\""
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.35.0",
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-static": "^3.0.9",
