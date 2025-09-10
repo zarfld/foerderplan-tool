@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Migration Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .export { background: #e3f2fd; }
+        .import { background: #f3e5f5; }
+        .status { background: #e8f5e8; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .primary { background: #2196f3; color: white; }
+        .success { background: #4caf50; color: white; }
+        .warning { background: #ff9800; color: white; }
+        textarea { width: 100%; height: 200px; font-family: monospace; font-size: 12px; }
+        .instructions { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .step { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Förderplan Data Migration Tool</h1>
+    
+    <div class="instructions">
+        <h3>📋 Anleitung zum Daten-Transfer:</h3>
+        <div class="step">
+            <strong>Schritt 1:</strong> Öffnen Sie <code>http://EttingsTest/web/foerderplan-tool/data-migration.html</code> (wo Ihre Daten sind)
+        </div>
+        <div class="step">
+            <strong>Schritt 2:</strong> Klicken Sie "📤 Export Data" und kopieren Sie den JSON-Text
+        </div>
+        <div class="step">
+            <strong>Schritt 3:</strong> Öffnen Sie <code>http://localhost:5173/data-migration.html</code> (Entwicklungsserver)
+        </div>
+        <div class="step">
+            <strong>Schritt 4:</strong> Fügen Sie den JSON-Text ein und klicken Sie "📥 Import Data"
+        </div>
+    </div>
+
+    <div class="section status">
+        <h3>📊 Current Storage Status</h3>
+        <p><strong>Domain:</strong> <span id="currentDomain">-</span></p>
+        <p><strong>Total localStorage items:</strong> <span id="totalItems">-</span></p>
+        <p><strong>Förderplan items:</strong> <span id="foerderplanItems">-</span></p>
+        <p><strong>Storage size:</strong> <span id="storageSize">-</span> KB</p>
+        <button class="primary" onclick="checkStatus()">🔄 Refresh Status</button>
+    </div>
+
+    <div class="section export">
+        <h3>📤 Export Data</h3>
+        <p>Export all Förderplan data from this domain:</p>
+        <button class="success" onclick="exportData()">📤 Export All Förderplan Data</button>
+        <textarea id="exportData" placeholder="Exported data will appear here..."></textarea>
+    </div>
+
+    <div class="section import">
+        <h3>📥 Import Data</h3>
+        <p>Import Förderplan data to this domain:</p>
+        <textarea id="importData" placeholder="Paste exported JSON data here..."></textarea>
+        <br>
+        <button class="warning" onclick="importData()">📥 Import Data</button>
+        <button class="primary" onclick="clearImportArea()">🗑️ Clear</button>
+    </div>
+
+    <div id="result" style="margin-top: 20px; padding: 10px; border-radius: 5px; display: none;"></div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.style.display = 'block';
+            result.style.background = type === 'success' ? '#d4edda' : 
+                                    type === 'error' ? '#f8d7da' : '#d1ecf1';
+            result.style.color = type === 'success' ? '#155724' : 
+                               type === 'error' ? '#721c24' : '#0c5460';
+        }
+
+        function checkStatus() {
+            const totalItems = localStorage.length;
+            let foerderplanItems = 0;
+            let totalSize = 0;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        totalSize += (key.length + value.length) * 2;
+                        if (key.startsWith('foerderplan_')) {
+                            foerderplanItems++;
+                        }
+                    }
+                }
+            }
+            
+            document.getElementById('currentDomain').textContent = window.location.origin;
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('foerderplanItems').textContent = foerderplanItems;
+            document.getElementById('storageSize').textContent = Math.round(totalSize / 1024);
+            
+            console.log(`Status: ${foerderplanItems} Förderplan items found on ${window.location.origin}`);
+        }
+
+        function exportData() {
+            try {
+                const exportObj = {};
+                let exportCount = 0;
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('foerderplan_')) {
+                        exportObj[key] = localStorage.getItem(key);
+                        exportCount++;
+                    }
+                }
+                
+                const exportJson = JSON.stringify(exportObj, null, 2);
+                document.getElementById('exportData').value = exportJson;
+                
+                showResult(`✅ Exported ${exportCount} items successfully!`, 'success');
+                console.log(`Exported ${exportCount} Förderplan items`);
+                
+            } catch (error) {
+                showResult(`❌ Export failed: ${error.message}`, 'error');
+                console.error('Export error:', error);
+            }
+        }
+
+        function importData() {
+            try {
+                const importText = document.getElementById('importData').value.trim();
+                if (!importText) {
+                    showResult('❌ Please paste JSON data first!', 'error');
+                    return;
+                }
+                
+                const importObj = JSON.parse(importText);
+                let importCount = 0;
+                let existingCount = 0;
+                
+                for (const [key, value] of Object.entries(importObj)) {
+                    if (key.startsWith('foerderplan_')) {
+                        if (localStorage.getItem(key)) {
+                            existingCount++;
+                        }
+                        localStorage.setItem(key, value);
+                        importCount++;
+                    }
+                }
+                
+                showResult(`✅ Imported ${importCount} items successfully! (${existingCount} were existing and updated)`, 'success');
+                console.log(`Imported ${importCount} items, ${existingCount} were existing`);
+                
+                // Refresh status
+                checkStatus();
+                
+            } catch (error) {
+                showResult(`❌ Import failed: ${error.message}`, 'error');
+                console.error('Import error:', error);
+            }
+        }
+
+        function clearImportArea() {
+            document.getElementById('importData').value = '';
+            showResult('Import area cleared', 'info');
+        }
+
+        // Auto-check status on load
+        checkStatus();
+    </script>
+</body>
+</html>

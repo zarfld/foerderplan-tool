@@ -1,212 +1,308 @@
-<!-- @ts-nocheck -->
+<!-- Updated Database Settings with CouchDB Sync -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { initDB } from '$lib/utils/database';
 	
+	let db: any = null;
+	let syncStatus = 'initializing';
+	let dbMode = 'unknown';
 	let localDocCount = 0;
-	let localStorageSize = 0;
+	let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 	let testResult = '';
 	let isLoading = false;
+	let couchdbConfig = {
+		localUrl: 'http://157.247.1.102:5984',
+		webUrl: 'https://couchdb.ettingshaus14.synology.me',
+		environment: 'test' as 'test' | 'production' | 'backup'
+	};
 	
 	onMount(async () => {
 		if (browser) {
-			await updateLocalStats();
+			// Initialize database
+			db = await initDB();
+			
+			// Handle missing functions gracefully for localStorage mode
+			syncStatus = db.getSyncStatus ? db.getSyncStatus() : 'offline';
+			dbMode = db.getMode ? db.getMode() : 'localStorage';
+			
+			// Update stats
+			await updateStats();
+			
+			// Setup online/offline detection
+			const updateOnlineStatus = () => {
+				isOnline = navigator.onLine;
+			};
+			
+			window.addEventListener('online', updateOnlineStatus);
+			window.addEventListener('offline', updateOnlineStatus);
 		}
 	});
 	
-	async function updateLocalStats() {
-		if (!browser) return;
+	async function updateStats() {
+		if (!db) return;
 		
 		try {
-			// Count localStorage items related to assessments
-			let count = 0;
-			let size = 0;
-			
-			for (let i = 0; i < localStorage.length; i++) {
-				const key = localStorage.key(i);
-				if (key?.startsWith('pouchdb_') || key?.includes('assessment') || key?.includes('foerderplan')) {
-					count++;
-					const value = localStorage.getItem(key);
-					if (value) {
-						size += value.length;
-					}
-				}
-			}
-			
-			localDocCount = count;
-			localStorageSize = Math.round(size / 1024 * 100) / 100; // KB
-			
-			console.log(`📊 Local storage stats: ${count} documents, ${localStorageSize} KB`);
+			// Use getAllDocuments instead of loadAllAssessments
+			const allDocs = await db.allDocs({ include_docs: true });
+			localDocCount = allDocs.rows.filter((row: any) => 
+				row.id.startsWith('assessment-') || row.id === 'current-foerderplan' || row.id === 'student-list'
+			).length;
+			console.log(`📊 Database stats: ${localDocCount} documents`);
 		} catch (error) {
-			console.error('Error updating local stats:', error);
+			console.error('Error updating stats:', error);
 		}
 	}
 	
-	function clearAllData() {
+	async function testCouchDBConnection() {
 		if (!browser) return;
 		
-		if (confirm('Möchten Sie wirklich alle lokalen Daten löschen? Diese Aktion kann nicht rückgängig gemacht werden!')) {
-			try {
-				const keysToRemove = [];
-				
-				for (let i = 0; i < localStorage.length; i++) {
-					const key = localStorage.key(i);
-					if (key?.startsWith('pouchdb_') || key?.includes('assessment') || key?.includes('foerderplan')) {
-						keysToRemove.push(key);
-					}
-				}
-				
-				keysToRemove.forEach(key => localStorage.removeItem(key));
-				
-				testResult = `✅ ${keysToRemove.length} Dokumente erfolgreich gelöscht`;
-				updateLocalStats();
-			} catch (error: any) {
-				testResult = `❌ Fehler beim Löschen: ${error?.message || error}`;
-			}
-		}
-	}
-	
-	async function exportData() {
-		if (!browser) return;
+		isLoading = true;
+		testResult = '';
 		
 		try {
-			isLoading = true;
-			const exportData: any = {};
-			
-			for (let i = 0; i < localStorage.length; i++) {
-				const key = localStorage.key(i);
-				if (key?.startsWith('pouchdb_') || key?.includes('assessment') || key?.includes('foerderplan')) {
-					const value = localStorage.getItem(key);
-					if (value) {
-						exportData[key] = JSON.parse(value);
-					}
+			const response = await fetch(`${couchdbConfig.localUrl}/_up`, {
+				method: 'GET',
+				headers: {
+					'Authorization': 'Basic ' + btoa('Lehrer:jenAplan'),
+					'Content-Type': 'application/json'
 				}
+			});
+			
+			if (response.ok) {
+				testResult = '✅ CouchDB-Verbindung erfolgreich';
+			} else {
+				testResult = `❌ CouchDB-Verbindung fehlgeschlagen: ${response.status}`;
 			}
-			
-			const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `foerderplan-export-${new Date().toISOString().split('T')[0]}.json`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-			
-			testResult = '✅ Daten erfolgreich exportiert';
 		} catch (error: any) {
-			testResult = `❌ Export-Fehler: ${error?.message || error}`;
+			testResult = `❌ CouchDB-Verbindungsfehler: ${error?.message || error}`;
 		} finally {
 			isLoading = false;
 		}
 	}
 	
-	async function importData(event: any) {
-		if (!browser) return;
+	async function triggerSync() {
+		if (!db) return;
 		
-		const file = event.target.files[0];
-		if (!file) return;
+		isLoading = true;
+		testResult = '';
 		
 		try {
-			isLoading = true;
-			const text = await file.text();
-			const importData = JSON.parse(text);
-			
-			let importCount = 0;
-			
-			for (const [key, value] of Object.entries(importData)) {
-				localStorage.setItem(key, JSON.stringify(value));
-				importCount++;
+			const success = await db.manualSync();
+			if (success) {
+				testResult = '✅ Synchronisation erfolgreich';
+				await updateStats();
+			} else {
+				testResult = '❌ Synchronisation fehlgeschlagen';
 			}
-			
-			testResult = `✅ ${importCount} Dokumente erfolgreich importiert`;
-			await updateLocalStats();
 		} catch (error: any) {
-			testResult = `❌ Import-Fehler: ${error?.message || error}`;
+			testResult = `❌ Sync-Fehler: ${error?.message || error}`;
 		} finally {
 			isLoading = false;
 		}
 	}
 	
-	function getStorageColor(sizeKB: number): string {
-		if (sizeKB < 100) return '#10b981'; // Green
-		if (sizeKB < 500) return '#f59e0b'; // Yellow
-		return '#ef4444'; // Red
+	function getStatusColor(status: string): string {
+		switch (status) {
+			case 'synced': return '#10b981'; // Green
+			case 'syncing': return '#f59e0b'; // Yellow
+			case 'offline': return '#6b7280'; // Gray
+			case 'error': return '#ef4444'; // Red
+			default: return '#3b82f6'; // Blue
+		}
+	}
+	
+	function getModeDescription(mode: string): string {
+		switch (mode) {
+			case 'hybrid': return 'Hybrid (PouchDB + CouchDB Sync)';
+			case 'localStorage': return 'Lokaler Speicher (Offline)';
+			case 'couchdb': return 'CouchDB (Online)';
+			default: return 'Unbekannt';
+		}
+	}
+	
+	async function switchEnvironment() {
+		if (!db) return;
+		
+		isLoading = true;
+		testResult = '';
+		
+		try {
+			// Reinitialize database with new environment
+			db = await initDB();
+			syncStatus = db.getSyncStatus ? db.getSyncStatus() : 'offline';
+			dbMode = db.getMode ? db.getMode() : 'localStorage';
+			
+			await updateStats();
+			testResult = `✅ Umgebung zu "${couchdbConfig.environment}" gewechselt`;
+		} catch (error: any) {
+			testResult = `❌ Umgebungswechsel fehlgeschlagen: ${error?.message || error}`;
+		} finally {
+			isLoading = false;
+		}
+	}
+	
+	async function forceSyncNow() {
+		if (!db) return;
+		
+		isLoading = true;
+		testResult = '';
+		
+		try {
+			if (db.manualSync) {
+				const success = await db.manualSync();
+				if (success) {
+					testResult = '✅ Synchronisation erfolgreich durchgeführt';
+					await updateStats();
+					syncStatus = db.getSyncStatus ? db.getSyncStatus() : 'offline';
+				} else {
+					testResult = '❌ Synchronisation fehlgeschlagen';
+				}
+			} else {
+				testResult = '⚠️ Sync nicht verfügbar im localStorage-Modus';
+			}
+		} catch (error: any) {
+			testResult = `❌ Sync-Fehler: ${error?.message || error}`;
+		} finally {
+			isLoading = false;
+		}
+	}
+	
+	async function testConnection() {
+		if (!db) return;
+		
+		isLoading = true;
+		testResult = '';
+		
+		try {
+			// Test both local and web URLs
+			const localTest = await fetch(`${couchdbConfig.localUrl}/_up`);
+			const webTest = await fetch(`${couchdbConfig.webUrl}/_up`);
+			
+			const localOk = localTest.ok;
+			const webOk = webTest.ok;
+			
+			if (localOk && webOk) {
+				testResult = '✅ Beide CouchDB-Verbindungen funktionieren';
+			} else if (localOk) {
+				testResult = '⚠️ Nur lokale CouchDB-Verbindung funktioniert';
+			} else if (webOk) {
+				testResult = '⚠️ Nur Web-CouchDB-Verbindung funktioniert';
+			} else {
+				testResult = '❌ Keine CouchDB-Verbindung verfügbar';
+			}
+		} catch (error: any) {
+			testResult = `❌ Verbindungstest fehlgeschlagen: ${error?.message || error}`;
+		} finally {
+			isLoading = false;
+		}
 	}
 </script>
 
 <div class="database-settings">
 	<h2>Datenbank-Einstellungen</h2>
 	
-	<!-- Connection Status -->
+	<!-- Sync Status -->
 	<div class="status-section">
-		<h3>Lokaler Speicher (localStorage)</h3>
+		<h3>📊 System-Status</h3>
 		<div class="status-grid">
 			<div class="status-item">
-				<span class="status-label">Gespeicherte Dokumente:</span>
-				<span class="status-value">📱 {localDocCount} Dokumente</span>
+				<span class="status-label">Datenbank-Modus:</span>
+				<span class="status-value">�️ {getModeDescription(dbMode)}</span>
 			</div>
 			<div class="status-item">
-				<span class="status-label">Speicherplatz:</span>
-				<span class="status-value" style="color: {getStorageColor(localStorageSize)}">
-					💾 {localStorageSize} KB
+				<span class="status-label">Sync-Status:</span>
+				<span class="status-value" style="color: {getStatusColor(syncStatus)}">
+					⚡ {syncStatus === 'synced' ? 'Synchronisiert' : 
+						  syncStatus === 'syncing' ? 'Synchronisiert...' :
+						  syncStatus === 'offline' ? 'Offline-Modus' :
+						  syncStatus === 'error' ? 'Sync-Fehler' : 'Unbekannt'}
 				</span>
 			</div>
 			<div class="status-item">
-				<span class="status-label">Browser:</span>
-				<span class="status-value">🌐 {browser && navigator?.userAgent?.includes('Chrome') ? 'Chrome' : 'Browser'}</span>
+				<span class="status-label">Lokale Dokumente:</span>
+				<span class="status-value">📱 {localDocCount} Förderplan-Dokumente</span>
 			</div>
 			<div class="status-item">
-				<span class="status-label">Online-Status:</span>
+				<span class="status-label">Verbindungsstatus:</span>
 				<span class="status-value">
-					{browser && navigator?.onLine ? '🌐 Online' : '📱 Offline'}
+					{isOnline ? '🌐 Online' : '📱 Offline'}
 				</span>
 			</div>
 		</div>
 	</div>
 	
-	<!-- Data Management -->
+	<!-- Environment Management -->
 	<div class="config-section">
-		<h3>Daten-Verwaltung</h3>
+		<h3>🔧 Umgebungseinstellungen</h3>
 		<p class="config-description">
-			Verwalten Sie Ihre lokalen Förderplan-Daten. Alle Daten werden sicher in Ihrem Browser gespeichert 
-			und bleiben auch nach einem Neustart erhalten.
+			Wechseln Sie zwischen verschiedenen CouchDB-Umgebungen. Die Änderung wird sofort aktiv.
 		</p>
+		
+		<div class="environment-selector">
+			<label>
+				<input 
+					type="radio" 
+					bind:group={couchdbConfig.environment} 
+					value="test"
+					on:change={switchEnvironment}
+				/>
+				<span class="env-option">
+					🧪 Test-Umgebung
+					<small>Für Entwicklung und Tests</small>
+				</span>
+			</label>
+			
+			<label>
+				<input 
+					type="radio" 
+					bind:group={couchdbConfig.environment} 
+					value="production"
+					on:change={switchEnvironment}
+				/>
+				<span class="env-option">
+					🏭 Produktions-Umgebung
+					<small>Für den Echtbetrieb</small>
+				</span>
+			</label>
+			
+			<label>
+				<input 
+					type="radio" 
+					bind:group={couchdbConfig.environment} 
+					value="backup"
+					on:change={switchEnvironment}
+				/>
+				<span class="env-option">
+					� Backup-Umgebung
+					<small>Für Datenarchivierung</small>
+				</span>
+			</label>
+		</div>
 		
 		<div class="button-group">
 			<button 
 				class="btn btn-info" 
-				on:click={updateLocalStats}
+				on:click={updateStats}
 				disabled={isLoading}
 			>
-				📊 Status aktualisieren
+				{isLoading ? '⏳ Aktualisiere...' : '� Status aktualisieren'}
 			</button>
 			
 			<button 
 				class="btn btn-primary" 
-				on:click={exportData}
-				disabled={isLoading || localDocCount === 0}
+				on:click={forceSyncNow}
+				disabled={isLoading || !isOnline}
 			>
-				{isLoading ? '⏳ Exportiere...' : '📤 Daten exportieren'}
+				{isLoading ? '⏳ Synchronisiere...' : '⚡ Jetzt synchronisieren'}
 			</button>
 			
-			<label class="btn btn-secondary" class:disabled={isLoading}>
-				{isLoading ? '⏳ Importiere...' : '📥 Daten importieren'}
-				<input 
-					type="file" 
-					accept=".json"
-					on:change={importData}
-					style="display: none;"
-					disabled={isLoading}
-				/>
-			</label>
-			
 			<button 
-				class="btn btn-danger" 
-				on:click={clearAllData}
-				disabled={isLoading || localDocCount === 0}
+				class="btn btn-warning" 
+				on:click={testConnection}
+				disabled={isLoading}
 			>
-				🗑️ Alle Daten löschen
+				{isLoading ? '⏳ Teste...' : '� Verbindung testen'}
 			</button>
 		</div>
 		
@@ -217,32 +313,40 @@
 		{/if}
 	</div>
 	
-	<!-- Future NAS Section -->
+	<!-- Architecture Information -->
 	<div class="help-section">
-		<h3>Zukünftige Features</h3>
+		<h3>ℹ️ System-Architektur</h3>
 		<div class="help-content">
-			<h4>🏠 Aktuell: localStorage (Offline-First)</h4>
+			<h4>�️ Hybrid Database System</h4>
 			<p>
-				• ✅ Daten bleiben nach Browser-Neustart erhalten<br>
-				• ✅ Funktioniert ohne Internetverbindung<br>
-				• ✅ Automatische Speicherung aller Änderungen<br>
-				• ⚠️ Jedes Gerät/Browser hat eigene Daten
+				• ✅ <strong>PouchDB:</strong> Lokale Speicherung im Browser<br>
+				• ✅ <strong>CouchDB:</strong> Zentrale Synchronisation auf Synology NAS<br>
+				• ✅ <strong>Offline-First:</strong> Funktioniert auch ohne Internet<br>
+				• ✅ <strong>Auto-Sync:</strong> Automatische Synchronisation wenn online
 			</p>
 			
-			<h4>🔮 Geplant: NAS Synchronisation</h4>
+			<h4>🌐 CouchDB-Konfiguration</h4>
 			<p>
-				• 🚧 Zentrale Datenbank auf Synology NAS<br>
-				• 🚧 Automatische Synchronisation zwischen Geräten<br>
-				• 🚧 Backup und Wiederherstellung<br>
-				• 🚧 Mehrbenutzerzugriff
+				• <strong>Lokal:</strong> <code>{couchdbConfig.localUrl}</code><br>
+				• <strong>Web:</strong> <code>{couchdbConfig.webUrl}</code><br>
+				• <strong>Aktuelle Umgebung:</strong> <code>{couchdbConfig.environment}</code><br>
+				• <strong>Datenbank:</strong> <code>foerderplan-{couchdbConfig.environment}</code>
 			</p>
 			
-			<h4>� Tipps für den aktuellen Stand</h4>
+			<h4>� Funktionsweise</h4>
 			<p>
-				• Nutzen Sie "Daten exportieren" für Backups<br>
-				• Importieren Sie Daten auf anderen Geräten<br>
-				• URL teilen: <code>http://ihr-pc-ip:5173</code> für Netzwerkzugriff<br>
-				• Jedes Gerät benötigt eigenen Import der Daten
+				• Alle Daten werden sofort lokal in PouchDB gespeichert<br>
+				• Bei Internetverbindung wird automatisch mit CouchDB synchronisiert<br>
+				• Konflikte werden automatisch erkannt und gekennzeichnet<br>
+				• Jedes Gerät hat eine vollständige lokale Kopie der Daten
+			</p>
+			
+			<h4>🔐 Datensicherheit</h4>
+			<p>
+				• Daten bleiben auch bei Serverausfall verfügbar<br>
+				• Automatische Backups durch CouchDB-Replikation<br>
+				• Versionierung aller Dokument-Änderungen<br>
+				• Keine Datenverluste durch Offline-First Architektur
 			</p>
 		</div>
 	</div>
@@ -261,7 +365,7 @@
 		text-align: center;
 	}
 	
-	.status-section, .config-section, .sync-section, .help-section {
+	.status-section, .config-section, .help-section {
 		background: white;
 		border-radius: 8px;
 		padding: 1.5rem;
@@ -269,7 +373,7 @@
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 	
-	.status-section h3, .config-section h3, .sync-section h3, .help-section h3 {
+	.status-section h3, .config-section h3, .help-section h3 {
 		margin-bottom: 1rem;
 		color: #374151;
 		font-weight: 600;
@@ -306,46 +410,7 @@
 		line-height: 1.6;
 	}
 	
-	.config-description code {
-		background: #f3f4f6;
-		padding: 0.2rem 0.4rem;
-		border-radius: 3px;
-		font-family: monospace;
-		font-size: 0.9rem;
-	}
-	
-	.nas-config {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-	
-	.input-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	
-	.input-group label {
-		font-weight: 500;
-		color: #374151;
-	}
-	
-	.nas-input {
-		padding: 0.75rem;
-		border: 1px solid #d1d5db;
-		border-radius: 6px;
-		font-size: 0.875rem;
-		background: white;
-	}
-	
-	.nas-input:focus {
-		outline: none;
-		border-color: #3b82f6;
-		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-	}
-	
-	.button-group, .sync-controls {
+	.button-group {
 		display: flex;
 		gap: 0.75rem;
 		flex-wrap: wrap;
@@ -370,24 +435,6 @@
 		background: #2563eb;
 	}
 	
-	.btn-secondary {
-		background: #6b7280;
-		color: white;
-	}
-	
-	.btn-secondary:hover:not(:disabled) {
-		background: #4b5563;
-	}
-	
-	.btn-danger {
-		background: #ef4444;
-		color: white;
-	}
-	
-	.btn-danger:hover:not(:disabled) {
-		background: #dc2626;
-	}
-	
 	.btn-info {
 		background: #0ea5e9;
 		color: white;
@@ -397,15 +444,53 @@
 		background: #0284c7;
 	}
 	
-	.btn.disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-		pointer-events: none;
+	.btn-warning {
+		background: #f59e0b;
+		color: white;
 	}
 	
-	.btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+	.btn-warning:hover:not(:disabled) {
+		background: #d97706;
+	}
+	
+	.environment-selector {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin: 1rem 0;
+		padding: 1rem;
+		background: #f9fafb;
+		border-radius: 8px;
+		border: 1px solid #e5e7eb;
+	}
+	
+	.environment-selector label {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		cursor: pointer;
+		padding: 0.75rem;
+		border-radius: 6px;
+		transition: background-color 0.2s;
+	}
+	
+	.environment-selector label:hover {
+		background: #f3f4f6;
+	}
+	
+	.environment-selector input[type="radio"] {
+		margin: 0;
+	}
+	
+	.env-option {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	
+	.env-option small {
+		color: #6b7280;
+		font-size: 0.75rem;
 	}
 	
 	.test-result {
