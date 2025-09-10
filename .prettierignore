@@ -1,0 +1,18 @@
+# Build outputs
+build/
+dist/
+.svelte-kit/
+
+# Test reports
+playwright-report/
+test-results/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Package files
+package-lock.json
