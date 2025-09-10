@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { initDB } from '$lib/utils/database';
 	
 	let status = 'Initializing...';
 	let error: string | null = null;
 	
 	onMount(async () => {
+		if (!browser) return;
+		
 		try {
 			status = 'Testing database connection...';
 			const db = await initDB();

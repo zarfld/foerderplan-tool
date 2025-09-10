@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, beforeUpdate } from 'svelte';
+	import { browser } from '$app/environment';
 	import { saveDocument, exportToPDF } from '$lib/utils/dataExport';
 	import { initDB, saveData, loadData, saveAssessment } from '$lib/utils/database';
 	import FoerderplanForm from '$lib/components/FoerderplanForm.svelte';
@@ -13,11 +14,17 @@
 	let saveStatus = '';
 
 	onMount(async () => {
-		db = await initDB();
-		// Try to load existing data
-		const existingData = await loadData(db, 'current-foerderplan');
-		if (existingData) {
-			data = existingData;
+		if (!browser) return;
+		
+		try {
+			db = await initDB();
+			// Try to load existing data
+			const existingData = await loadData(db, 'current-foerderplan');
+			if (existingData) {
+				data = existingData;
+			}
+		} catch (error) {
+			console.error('Error initializing app:', error);
 		}
 	});
 	
