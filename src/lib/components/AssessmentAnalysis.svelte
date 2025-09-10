@@ -1,10 +1,39 @@
-<!-- @ts-nocheck -->
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { loadAllAssessments, compareAssessments, getProgressTracking } from '$lib/utils/database';
 	import ProgressChart from './ProgressChart.svelte';
 	
+	// Type definitions
+	interface TimelineData {
+		name?: string;
+		trend: 'improving' | 'declining' | 'stable';
+		changeAmount?: number;
+		changePercentage: number;
+		dataPoints?: any[];
+	}
+	
 	export let db: any;
+	
+	// Helper functions for timeline data
+	function getTimelineName(data: any, fallback: string): string {
+		return data && data.name ? data.name : fallback;
+	}
+	
+	function getTimelineTrend(data: any): string {
+		return data && data.trend ? data.trend : 'stable';
+	}
+	
+	function getTimelineChangeAmount(data: any): number | undefined {
+		return data && data.changeAmount !== undefined ? data.changeAmount : undefined;
+	}
+	
+	function getTimelineChangePercentage(data: any): number {
+		return data && data.changePercentage !== undefined ? data.changePercentage : 0;
+	}
+	
+	function getTimelineDataPoints(data: any): any[] {
+		return data && data.dataPoints ? data.dataPoints : [];
+	}
 	
 	const dispatch = createEventDispatcher();
 	
@@ -780,24 +809,24 @@
 							<!-- Timeline-specific subject details -->
 							{#if progressResult.subjectTimelines}
 								{#each Object.entries(progressResult.subjectTimelines) as [subject, timelineData]}
-									{#if timelineData}
+									{#if timelineData && typeof timelineData === 'object'}
 										<div class="subject-progress">
-											<h4>{timelineData.name || subject}</h4>
+											<h4>{getTimelineName(timelineData, subject)}</h4>
 											
 											<div class="timeline-details">
 												<div class="timeline-stat">
 													<span class="timeline-trend">
-														{timelineData.trend === 'improving' ? '📈' : 
-														 timelineData.trend === 'declining' ? '📉' : '📊'}
+														{getTimelineTrend(timelineData) === 'improving' ? '📈' : 
+														 getTimelineTrend(timelineData) === 'declining' ? '📉' : '📊'}
 													</span>
 													<span class="timeline-change">
-														{timelineData.changeAmount !== undefined ? 
-														 (timelineData.changeAmount > 0 ? '+' : '') + timelineData.changePercentage + '%' : 
+														{getTimelineChangeAmount(timelineData) !== undefined ? 
+														 ((getTimelineChangeAmount(timelineData) || 0) > 0 ? '+' : '') + getTimelineChangePercentage(timelineData) + '%' : 
 														 'Keine Änderung'}
 													</span>
 												</div>
 												<div class="timeline-points">
-													<strong>Datenpunkte:</strong> {timelineData.dataPoints?.length || 0}
+													<strong>Datenpunkte:</strong> {getTimelineDataPoints(timelineData).length || 0}
 												</div>
 											</div>
 										</div>

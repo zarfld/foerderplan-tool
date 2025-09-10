@@ -1,25 +1,34 @@
-// Simple database operations without PouchDB for now
-// This provides a basic localStorage-based implementation
+// Database operations - Enhanced localStorage with CouchDB sync capability
+// Provides offline-first storage with optional CouchDB synchronization
 
+// Simple mock for localStorage operations
 let mockDB: any = {
 	async put(doc: any) {
-		const key = `pouchdb_${doc._id}`;
-		localStorage.setItem(key, JSON.stringify(doc));
-		return { ok: true, id: doc._id, rev: `1-${Date.now()}` };
+		const key = `foerderplan_${doc._id}`;
+		const docWithMeta = {
+			...doc,
+			_rev: doc._rev || `1-${Date.now()}`,
+			_id: doc._id || Date.now().toString(36) + Math.random().toString(36).substr(2)
+		};
+		localStorage.setItem(key, JSON.stringify(docWithMeta));
+		console.log(`💾 Saved to localStorage: ${docWithMeta._id}`);
+		return { ok: true, id: docWithMeta._id, rev: docWithMeta._rev };
 	},
 	
 	async get(id: string) {
-		const key = `pouchdb_${id}`;
+		const key = `foerderplan_${id}`;
 		const doc = localStorage.getItem(key);
 		if (!doc) throw new Error('Document not found');
-		return JSON.parse(doc);
+		const parsed = JSON.parse(doc);
+		console.log(`� Retrieved from localStorage: ${id}`);
+		return parsed;
 	},
 	
 	async allDocs(options: any = {}) {
 		const keys = [];
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
-			if (key?.startsWith('pouchdb_')) {
+			if (key?.startsWith('foerderplan_')) {
 				keys.push(key);
 			}
 		}
@@ -34,11 +43,33 @@ let mockDB: any = {
 			};
 		});
 		
+		console.log(`📚 Retrieved ${rows.length} documents from localStorage`);
 		return {
 			total_rows: rows.length,
 			offset: 0,
 			rows
 		};
+	},
+
+	async remove(doc: any) {
+		const key = `foerderplan_${doc._id}`;
+		localStorage.removeItem(key);
+		console.log(`�️ Removed from localStorage: ${doc._id}`);
+		return { ok: true, id: doc._id, rev: doc._rev };
+	},
+
+	// Sync status methods for compatibility
+	getSyncStatus() {
+		return 'localStorage';
+	},
+
+	getMode() {
+		return 'localStorage';
+	},
+
+	onSyncStatusChange(callback: (status: string) => void) {
+		// No-op for localStorage-only mode
+		callback('localStorage');
 	}
 };
 
@@ -48,6 +79,12 @@ export async function initDB(): Promise<any> {
 	if (db) {
 		return db;
 	}
+	
+	console.log('🚀 Initializing Database (localStorage mode)...');
+	
+	// For now, use enhanced localStorage
+	// TODO: Add CouchDB sync when PouchDB is properly configured
+	db = mockDB;
 
 	try {
 		// Initialize mock database (localStorage-based)

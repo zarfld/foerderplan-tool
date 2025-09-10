@@ -7,7 +7,7 @@
 
 	// Accept props from page load function
 	export let data: any;
-	export let params: any = undefined; // Accept params prop to prevent warning
+	export const params: any = undefined; // Accept params prop to prevent warning
 	
 	// Mark as used to prevent warnings
 	void (data && params);

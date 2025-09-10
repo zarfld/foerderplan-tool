@@ -7,6 +7,7 @@
 	import StudentManager from '$lib/components/StudentManager.svelte';
 	import AssessmentAnalysis from '$lib/components/AssessmentAnalysis.svelte';
 	import AssessmentHistory from '$lib/components/AssessmentHistory.svelte';
+	import SyncStatus from '$lib/components/SyncStatus.svelte';
 
 	// Accept props to prevent warnings
 	export let data: any = undefined;
@@ -186,9 +187,14 @@
 				<p>Digital tool for recording and comparing student progress</p>
 			</div>
 			
+			<div class="header-status">
+				<SyncStatus />
+			</div>
+			
 			<nav class="header-nav">
 				<a href="/demo" class="nav-link">📊 Demo</a>
 				<a href="/timeline-test" class="nav-link">📈 Timeline Test</a>
+				<a href="/couchdb-test" class="nav-link">🗄️ CouchDB Test</a>
 				<a href="/settings" class="nav-link">⚙️ Einstellungen</a>
 			</nav>
 		</div>
@@ -271,16 +277,23 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 1rem;
+		gap: 1rem;
 	}
 	
 	.title-section {
 		text-align: left;
+		flex: 1;
+	}
+
+	.header-status {
+		flex: 0 0 auto;
 	}
 	
 	.header-nav {
 		display: flex;
 		gap: 1rem;
 		align-items: center;
+		flex: 0 0 auto;
 	}
 	
 	.nav-link {
@@ -461,15 +474,21 @@
 		.header-top {
 			flex-direction: column;
 			gap: 1rem;
+			align-items: center;
 		}
 		
 		.title-section {
 			text-align: center;
 		}
-		
+
+		.header-status {
+			order: 1;
+		}
+
 		.header-nav {
-			flex-wrap: wrap;
+			order: 2;
 			justify-content: center;
+			flex-wrap: wrap;
 		}
 		
 		.toolbar {

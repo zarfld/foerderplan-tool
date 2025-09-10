@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Accept any props to avoid warnings - mark as unused
-	export let data: any = undefined;
-	export let params: any = undefined;
+	export const data: any = undefined;
+	export const params: any = undefined;
 	
 	// Mark as used to prevent warnings
 	void (data && params);

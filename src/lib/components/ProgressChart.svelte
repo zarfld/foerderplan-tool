@@ -1,10 +1,46 @@
-<!-- @ts-nocheck -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import Chart from 'chart.js/auto';
 	
-	export let progressData: any = null;
+	// Type definitions
+	interface TimelineData {
+		name?: string;
+		trend: 'improving' | 'declining' | 'stable';
+		changeAmount?: number;
+		changePercentage: number;
+		dataPoints?: any[];
+	}
+	
+	interface ProgressData {
+		subjectTimelines: Record<string, TimelineData>;
+		timeline?: Array<{ date: string; [key: string]: any }>;
+		timespan: {
+			first: string;
+			latest: string;
+		};
+		assessmentCount: number;
+		overallTrend: 'improving' | 'declining' | 'stable';
+	}
+	
+	export let progressData: ProgressData | null = null;
 	export let title = 'Fortschritt über Zeit';
+	
+	// Helper functions for timeline data
+	function getTimelineName(data: any, fallback: string): string {
+		return data && data.name ? data.name : fallback;
+	}
+	
+	function getTimelineTrend(data: any): string {
+		return data && data.trend ? data.trend : 'stable';
+	}
+	
+	function getTimelineChangeAmount(data: any): number | undefined {
+		return data && data.changeAmount !== undefined ? data.changeAmount : undefined;
+	}
+	
+	function getTimelineChangePercentage(data: any): number {
+		return data && data.changePercentage !== undefined ? data.changePercentage : 0;
+	}
 	
 	let chartCanvas: HTMLCanvasElement;
 	let chartInstance: Chart | null = null;
@@ -201,15 +237,15 @@
 		<div class="trend-summary">
 			<h4>Trend-Zusammenfassung</h4>
 			<div class="trend-grid">			{#each Object.entries(progressData.subjectTimelines) as [subject, timelineData]}
-				{#if timelineData}
+				{#if timelineData && typeof timelineData === 'object'}
 					<div class="trend-item">
 						<div class="trend-header">
-							<span class="trend-icon">{getTrendIcon(timelineData.trend)}</span>
-							<span class="subject-name">{timelineData.name || subject}</span>
+							<span class="trend-icon">{getTrendIcon(getTimelineTrend(timelineData))}</span>
+							<span class="subject-name">{getTimelineName(timelineData, subject)}</span>
 						</div>
-						<div class="trend-details" style="color: {getTrendColor(timelineData.trend)}">
-							{#if timelineData.changeAmount !== undefined}
-								{timelineData.changeAmount > 0 ? '+' : ''}{timelineData.changePercentage}%
+						<div class="trend-details" style="color: {getTrendColor(getTimelineTrend(timelineData))}">
+							{#if getTimelineChangeAmount(timelineData) !== undefined}
+								{(getTimelineChangeAmount(timelineData) || 0) > 0 ? '+' : ''}{getTimelineChangePercentage(timelineData)}%
 							{:else}
 								Keine Daten
 							{/if}
