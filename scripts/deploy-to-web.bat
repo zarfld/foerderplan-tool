@@ -21,7 +21,7 @@ echo Deploying to \\EttingsTest\web...
 echo.
 
 REM Run PowerShell deployment script
-powershell -ExecutionPolicy Bypass -File "scripts\deploy-to-web.ps1" -TargetPath "\\EttingsTest\web" -SubFolder "foerderplan-tool" -Force -Backup
+powershell -ExecutionPolicy Bypass -File "scripts\deploy-to-web-clean.ps1" -TargetPath "\\EttingsTest\web" -AppName "foerderplan-tool" -Force
 
 if %ERRORLEVEL% EQU 0 (
     echo.

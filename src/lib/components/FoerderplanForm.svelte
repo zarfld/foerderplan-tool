@@ -181,51 +181,61 @@
 	let studentName = '';
 	let teacherName = '';
 	
-	// Reactive assignments to sync with data - simplified approach
+	// Track if user is currently editing these fields
+	let isEditingTimeframe = false;
+	let isEditingStudentClass = false;
+	let isEditingStudentName = false;
+	let isEditingTeacherName = false;
+	
+	// Track initialization state to prevent overwriting user input
+	let fieldsInitialized = false;
+	
+	// Reactive assignments to sync with data - only on initial load or when not editing
 	$: {
-		if (data?.assessmentPeriod?.timeframe !== undefined) {
+		if (data?.assessmentPeriod?.timeframe !== undefined && (!fieldsInitialized || !isEditingTimeframe)) {
 			timeframe = data.assessmentPeriod.timeframe;
 		}
-		if (data?.student?.class !== undefined) {
+		if (data?.student?.class !== undefined && (!fieldsInitialized || !isEditingStudentClass)) {
 			studentClass = data.student.class;
 		}
-		if (data?.student?.name !== undefined) {
+		if (data?.student?.name !== undefined && (!fieldsInitialized || !isEditingStudentName)) {
 			studentName = data.student.name;
 		}
-		if (data?.student?.teacher !== undefined) {
+		if (data?.student?.teacher !== undefined && (!fieldsInitialized || !isEditingTeacherName)) {
 			teacherName = data.student.teacher;
+		}
+		
+		// Mark as initialized after first sync
+		if (!fieldsInitialized && data) {
+			fieldsInitialized = true;
 		}
 	}
 	
 	// Update data when local values change
-	function updateTimeframe() {
+	function updateDataFromFields() {
 		if (data.assessmentPeriod) {
 			data.assessmentPeriod.timeframe = timeframe;
 		}
-		updateData();
-	}
-	
-	function updateStudentClass() {
 		if (data.student) {
 			data.student.class = studentClass;
-		}
-		updateData();
-	}
-	
-	function updateStudentName() {
-		if (data.student) {
 			data.student.name = studentName;
-		}
-		updateData();
-	}
-	
-	function updateTeacherName() {
-		if (data.student) {
 			data.student.teacher = teacherName;
 		}
-		updateData();
 	}
 
+	// Debounced update to prevent excessive auto-saving
+	let updateTimeout: ReturnType<typeof setTimeout> | null = null;
+	
+	function debouncedSave() {
+		if (updateTimeout) {
+			clearTimeout(updateTimeout);
+		}
+		updateTimeout = setTimeout(() => {
+			updateDataFromFields();
+			updateData();
+		}, 500); // Wait 500ms after last change
+	}
+	
 	function updateData() {
 		dispatch('change', { data });
 	}
@@ -244,7 +254,15 @@
 					id="zeitraum"
 					type="text"
 					bind:value={timeframe}
-					on:input={updateTimeframe}
+					on:input={() => {
+						isEditingTimeframe = true;
+						debouncedSave();
+					}}
+					on:focus={() => isEditingTimeframe = true}
+					on:blur={() => {
+						isEditingTimeframe = false;
+						debouncedSave();
+					}}
 					placeholder="z.B. Schuljahr 2024/2025, 1. Halbjahr"
 				/>
 			</div>
@@ -254,7 +272,15 @@
 					id="klasse"
 					type="text"
 					bind:value={studentClass}
-					on:input={updateStudentClass}
+					on:input={() => {
+						isEditingStudentClass = true;
+						debouncedSave();
+					}}
+					on:focus={() => isEditingStudentClass = true}
+					on:blur={() => {
+						isEditingStudentClass = false;
+						debouncedSave();
+					}}
 					placeholder="z.B. 2A"
 				/>
 			</div>
@@ -264,8 +290,17 @@
 					id="klassenlehrerin"
 					type="text"
 					bind:value={teacherName}
-					on:input={updateTeacherName}
+					on:input={() => {
+						isEditingTeacherName = true;
+						debouncedSave();
+					}}
+					on:focus={() => isEditingTeacherName = true}
+					on:blur={() => {
+						isEditingTeacherName = false;
+						debouncedSave();
+					}}
 					placeholder="Name der Lehrerin"
+				/>
 				/>
 			</div>
 			<div class="form-group">
@@ -274,7 +309,15 @@
 					id="schuelerin"
 					type="text"
 					bind:value={studentName}
-					on:input={updateStudentName}
+					on:input={() => {
+						isEditingStudentName = true;
+						debouncedSave();
+					}}
+					on:focus={() => isEditingStudentName = true}
+					on:blur={() => {
+						isEditingStudentName = false;
+						debouncedSave();
+					}}
 					placeholder="Name des Schülers/der Schülerin"
 				/>
 			</div>

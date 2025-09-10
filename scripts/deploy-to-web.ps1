@@ -144,4 +144,4 @@ if (Test-Path "$FullTargetPath\index.html") {
 }
 
 Write-Host ""
-Write-Host "🏁 Deployment script completed!" -ForegroundColor Green
+Write-Host "Deployment script completed!" -ForegroundColor Green
