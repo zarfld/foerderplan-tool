@@ -10,26 +10,26 @@ test.describe('Core Application Features', () => {
 		// Check main navigation elements
 		await expect(page.locator('nav')).toBeVisible();
 
-		// Check main content areas
-		await expect(page.locator('h1')).toBeVisible();
+		// Check main content areas - be specific about which h1
+		await expect(page.getByRole('heading', { name: '📋 Förderplan Tool' })).toBeVisible();
 	});
 
 	test('demo page is accessible', async ({ page }) => {
 		await page.goto('/demo');
 
-		await expect(page.locator('h1')).toContainText(/Demo/);
+		await expect(page.getByRole('heading', { name: /Demo/ })).toBeVisible();
 	});
 
 	test('features page is accessible', async ({ page }) => {
 		await page.goto('/features');
 
-		await expect(page.locator('h1')).toContainText(/Features/);
+		await expect(page.getByRole('heading', { name: /Features/ })).toBeVisible();
 	});
 
 	test('settings page is accessible', async ({ page }) => {
 		await page.goto('/settings');
 
-		await expect(page.locator('h1')).toContainText(/Einstellungen/);
+		await expect(page.getByRole('heading', { name: /Einstellungen/ })).toBeVisible();
 	});
 
 	test('app can handle student data', async ({ page }) => {

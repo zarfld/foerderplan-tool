@@ -1,0 +1,113 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - heading "📋 Förderplan Tool" [level=1] [ref=e8]
+          - paragraph [ref=e9]: Digital tool for recording and comparing student progress
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - generic [ref=e13]: ⚪
+            - generic [ref=e14]: Initialisiert...
+          - generic [ref=e16]: "Modus: Unbekannt"
+        - navigation [ref=e17]:
+          - link "📊 Demo" [ref=e18] [cursor=pointer]:
+            - /url: /demo
+          - link "📈 Timeline Test" [ref=e19] [cursor=pointer]:
+            - /url: /timeline-test
+          - link "🗄️ CouchDB Test" [ref=e20] [cursor=pointer]:
+            - /url: /couchdb-test
+          - link "⚙️ Einstellungen" [ref=e21] [cursor=pointer]:
+            - /url: /settings
+      - generic [ref=e22]:
+        - button "🆕 New Document" [ref=e23] [cursor=pointer]
+        - button "💾 Save JSON" [ref=e24] [cursor=pointer]
+        - button "📄 Export PDF" [ref=e25] [cursor=pointer]
+        - button "📊 Analyse & Vergleich" [ref=e26] [cursor=pointer]
+        - link "🎭 View Demo" [ref=e27] [cursor=pointer]:
+          - /url: /demo
+    - generic [ref=e29]:
+      - generic [ref=e30]: "Aktueller Schüler:"
+      - generic [ref=e31]:
+        - combobox "Aktueller Schüler:" [ref=e32]:
+          - option "-- Schüler auswählen --" [selected]
+        - button "👥" [ref=e33] [cursor=pointer]
+    - paragraph [ref=e35]: Bitte wählen Sie zuerst einen Schüler aus, um die Assessment-Historie anzuzeigen.
+    - generic [ref=e37]:
+      - heading "📋 Förderplan für den Förderunterricht" [level=1] [ref=e38]
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]: "Zeitraum:"
+          - textbox "Zeitraum:" [ref=e43]
+        - generic [ref=e44]:
+          - generic [ref=e45]: "Klasse:"
+          - textbox "Klasse:" [ref=e46]
+        - generic [ref=e47]:
+          - generic [ref=e48]: "Klassenlehrerin:"
+          - textbox "Klassenlehrerin:" [ref=e49]
+          - text: />
+        - generic [ref=e50]:
+          - generic [ref=e51]: "SchülerIn:"
+          - textbox "SchülerIn:" [ref=e52]
+      - generic [ref=e53]:
+        - heading "🗣️ Sprache und Sprechen" [level=2] [ref=e54]
+        - table [ref=e56]:
+          - rowgroup [ref=e57]:
+            - row "Beobachtungsaufgabe/Förderansatz ja teilw nein Anmerkung" [ref=e58]:
+              - cell "Beobachtungsaufgabe/Förderansatz" [ref=e59]
+              - cell "ja" [ref=e60]
+              - cell "teilw" [ref=e61]
+              - cell "nein" [ref=e62]
+              - cell "Anmerkung" [ref=e63]
+          - rowgroup
+      - generic [ref=e64]:
+        - heading "📖 Lesen" [level=2] [ref=e65]
+        - table [ref=e67]:
+          - rowgroup [ref=e68]:
+            - row "Beobachtungsaufgabe/Förderansatz ja teilw nein Anmerkung" [ref=e69]:
+              - cell "Beobachtungsaufgabe/Förderansatz" [ref=e70]
+              - cell "ja" [ref=e71]
+              - cell "teilw" [ref=e72]
+              - cell "nein" [ref=e73]
+              - cell "Anmerkung" [ref=e74]
+          - rowgroup
+      - generic [ref=e75]:
+        - heading "✏️ Schreiben" [level=2] [ref=e76]
+        - table [ref=e78]:
+          - rowgroup [ref=e79]:
+            - row "Beobachtungsaufgabe/Förderansatz ja teilw nein Anmerkung" [ref=e80]:
+              - cell "Beobachtungsaufgabe/Förderansatz" [ref=e81]
+              - cell "ja" [ref=e82]
+              - cell "teilw" [ref=e83]
+              - cell "nein" [ref=e84]
+              - cell "Anmerkung" [ref=e85]
+          - rowgroup
+      - generic [ref=e86]:
+        - heading "🔢 Mathematik" [level=2] [ref=e87]
+        - table [ref=e89]:
+          - rowgroup [ref=e90]:
+            - row "Beobachtungsaufgabe/Förderansatz ja teilw nein Anmerkung" [ref=e91]:
+              - cell "Beobachtungsaufgabe/Förderansatz" [ref=e92]
+              - cell "ja" [ref=e93]
+              - cell "teilw" [ref=e94]
+              - cell "nein" [ref=e95]
+              - cell "Anmerkung" [ref=e96]
+          - rowgroup
+      - generic [ref=e97]:
+        - heading "🎯 Fördermaßnahmen" [level=2] [ref=e98]
+        - generic [ref=e99]:
+          - 'heading "👂 Bereich: Hören und Unterscheiden" [level=3] [ref=e100]'
+          - list
+        - generic [ref=e101]:
+          - 'heading "💬 Bereich: Sprechen und Verstehen" [level=3] [ref=e102]'
+          - list
+        - generic [ref=e103]:
+          - 'heading "👁️ Bereich: Optische Wahrnehmung" [level=3] [ref=e104]'
+          - list
+        - generic [ref=e105]:
+          - heading "🔢 Fördermaßnahmen Mathematik" [level=3] [ref=e106]
+          - list
+```

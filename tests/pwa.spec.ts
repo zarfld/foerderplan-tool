@@ -39,8 +39,8 @@ test.describe('PWA Functionality', () => {
 		// Reload the page and check if it still works
 		await page.reload();
 
-		// Check if main content is still visible
-		await expect(page.locator('h1')).toBeVisible();
+		// Check if main content is still visible - be specific about which h1
+		await expect(page.getByRole('heading', { name: '📋 Förderplan Tool' })).toBeVisible();
 	});
 
 	test('manifest.json is accessible and valid', async ({ page }) => {
