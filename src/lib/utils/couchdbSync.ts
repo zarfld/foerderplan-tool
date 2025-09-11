@@ -1,29 +1,105 @@
 // CouchDB Sync Database - Real PouchDB with CouchDB synchronization
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import PouchDB from 'pouchdb';
 
-// Global flag to track if adapters are loaded
-let adaptersLoaded = false;
+// Global flag to track if PouchDB is loaded
+let pouchDBLoaded = false;
+let PouchDBConstructor: any = null;
 
-// Function to ensure adapters are loaded
-async function ensureAdaptersLoaded() {
-	if (adaptersLoaded) return;
+// Function to load PouchDB with improved fallback strategy
+async function ensurePouchDBLoaded() {
+	if (pouchDBLoaded && PouchDBConstructor) return PouchDBConstructor;
 	
+	// Strategy 1: Check for existing global PouchDB first (CDN priority)
+	if (typeof window !== 'undefined' && (window as any).PouchDB) {
+		PouchDBConstructor = (window as any).PouchDB;
+		pouchDBLoaded = true;
+		console.log('✅ Using existing global PouchDB');
+		return PouchDBConstructor;
+	}
+	
+	// Strategy 2: Load from CDN (most reliable in production)
 	try {
-		// Load adapters using require-like imports for better compatibility
-		const HttpAdapter = await import('pouchdb-adapter-http');
-		const IdbAdapter = await import('pouchdb-adapter-idb');
+		console.log('🔄 Loading PouchDB from CDN...');
+		return new Promise((resolve, reject) => {
+			if (typeof window === 'undefined') {
+				reject(new Error('Cannot load CDN PouchDB in non-browser environment'));
+				return;
+			}
+			
+			const script = document.createElement('script');
+			script.src = 'https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js';
+			script.onload = () => {
+				if ((window as any).PouchDB) {
+					PouchDBConstructor = (window as any).PouchDB;
+					pouchDBLoaded = true;
+					console.log('✅ PouchDB loaded from CDN');
+					resolve(PouchDBConstructor);
+				} else {
+					reject(new Error('PouchDB not available after CDN load'));
+				}
+			};
+			script.onerror = () => {
+				console.warn('⚠️ CDN loading failed, trying bundled version...');
+				// Fallback to bundled version
+				loadBundledPouchDB()
+					.then(resolve)
+					.catch(reject);
+			};
+			document.head.appendChild(script);
+		});
 		
-		// Add adapters to PouchDB - handle both default and named exports
-		PouchDB.plugin(HttpAdapter.default || HttpAdapter);
-		PouchDB.plugin(IdbAdapter.default || IdbAdapter);
+	} catch (cdnError) {
+		console.warn('⚠️ CDN loading failed:', cdnError);
+		return loadBundledPouchDB();
+	}
+}
+
+// Separate function for bundled PouchDB loading
+async function loadBundledPouchDB() {
+	try {
+		console.log('🔄 Attempting bundled PouchDB...');
+		// First, try to use the bundled version
+		const pouchDBModule = await import('pouchdb');
+		PouchDBConstructor = pouchDBModule.default || pouchDBModule;
 		
-		adaptersLoaded = true;
-		console.log('✅ PouchDB adapters loaded successfully');
-	} catch (error) {
-		console.error('❌ Failed to load PouchDB adapters:', error);
-		throw error;
+		// Test if the constructor works properly
+		if (typeof PouchDBConstructor !== 'function') {
+			throw new Error('PouchDB constructor is not a function');
+		}
+		
+		// Try to load adapters
+		try {
+			const [httpAdapter, idbAdapter] = await Promise.all([
+				import('pouchdb-adapter-http'),
+				import('pouchdb-adapter-idb')
+			]);
+			
+			PouchDBConstructor.plugin(httpAdapter.default || httpAdapter);
+			PouchDBConstructor.plugin(idbAdapter.default || idbAdapter);
+			console.log('✅ PouchDB loaded with adapters');
+		} catch (adapterError) {
+			console.warn('⚠️ PouchDB loaded but adapters failed:', adapterError);
+			console.log('📡 Continuing with basic PouchDB (HTTP adapter might still work)');
+		}
+		
+		// Test creating a simple database to ensure it works
+		try {
+			const testDb = new PouchDBConstructor('connection-test', { adapter: 'memory' });
+			await testDb.info();
+			await testDb.destroy();
+			console.log('✅ PouchDB constructor test passed');
+		} catch (testError) {
+			console.error('❌ PouchDB constructor test failed:', testError);
+			throw new Error('PouchDB constructor test failed: ' + testError.message);
+		}
+		
+		pouchDBLoaded = true;
+		return PouchDBConstructor;
+		
+	} catch (bundleError) {
+		console.error('❌ Bundled PouchDB failed:', bundleError);
+		throw new Error('All PouchDB loading strategies failed');
 	}
 }
 
@@ -54,6 +130,7 @@ export class CouchDBSyncManager {
 	private currentDatabase: string;
 	private syncHandler: any;
 	private isOnline: boolean = navigator.onLine;
+	private PouchDBConstructor: any = null;
 
 	constructor(config: CouchDBConfig, environment: 'test' | 'production' | 'backup' = 'test') {
 		this.config = config;
@@ -62,7 +139,7 @@ export class CouchDBSyncManager {
 	}
 
 	async initialize() {
-		await ensureAdaptersLoaded();
+		this.PouchDBConstructor = await ensurePouchDBLoaded();
 		this.setupDatabases();
 		this.setupOnlineListener();
 	}
@@ -72,8 +149,12 @@ export class CouchDBSyncManager {
 	}
 
 	private setupDatabases() {
+		if (!this.PouchDBConstructor) {
+			throw new Error('PouchDB not loaded. Call initialize() first.');
+		}
+		
 		// Local database (IndexedDB)
-		this.localDB = new PouchDB(this.currentDatabase, {
+		this.localDB = new this.PouchDBConstructor(this.currentDatabase, {
 			adapter: 'idb'
 		});
 
@@ -85,7 +166,7 @@ export class CouchDBSyncManager {
 		console.log(`   - Database: ${this.currentDatabase}`);
 		console.log(`   - Full Remote URL: ${remoteUrl}`);
 		
-		this.remoteDB = new PouchDB(remoteUrl, {
+		this.remoteDB = new this.PouchDBConstructor(remoteUrl, {
 			adapter: 'http',
 			auth: {
 				username: this.config.username,
@@ -334,6 +415,9 @@ export async function initCouchDBSync(
 	}
 
 	syncManager = new CouchDBSyncManager(defaultCouchDBConfig, environment);
+	
+	// Initialize PouchDB and setup databases
+	await syncManager.initialize();
 
 	// Test connection and start sync if possible
 	const connectionTest = await syncManager.testConnection();

@@ -6,6 +6,7 @@
 		saveAssessment,
 		loadLatestAssessment
 	} from '$lib/utils/database';
+	import foerderplanExample from '$lib/schema/foerderplan.example.json';
 
 	export let db: any;
 	export let currentStudent: string = '';
@@ -24,9 +25,63 @@
 		if (db) {
 			try {
 				students = await loadStudentList(db);
+				console.log('📚 Loaded students from database:', students);
+				
+				// Only add sample students if:
+				// 1. No students found at all
+				// 2. Database is in localStorage mode (not syncing)
+				// 3. Or if we've waited for sync and still no students
+				if (students.length === 0) {
+					const dbMode = db.getMode ? db.getMode() : 'unknown';
+					console.log('🔍 No students found, database mode:', dbMode);
+					
+					if (dbMode === 'localStorage') {
+						// Only in localStorage mode, add sample students immediately
+						console.log('📝 Adding sample students for localStorage mode...');
+						await addSampleStudents();
+					} else if (dbMode === 'hybrid' || dbMode === 'couchdb') {
+						// In sync mode, wait a bit for sync to complete, then check again
+						console.log('⏳ Waiting for sync to complete before adding sample students...');
+						setTimeout(async () => {
+							try {
+								// Check again after sync has had time to complete
+								const syncedStudents = await loadStudentList(db);
+								if (syncedStudents.length === 0) {
+									console.log('📝 No students found after sync, adding sample students...');
+									await addSampleStudents();
+								} else {
+									console.log('✅ Students found after sync:', syncedStudents);
+									students = syncedStudents;
+								}
+							} catch (error) {
+								console.error('Error checking for synced students:', error);
+							}
+						}, 3000); // Wait 3 seconds for sync
+					}
+				}
 			} catch (error) {
 				console.error('Error loading students:', error);
+				// Only as fallback when database completely fails
+				console.log('📝 Database error, adding sample students as fallback...');
+				await addSampleStudents();
 			}
+		}
+	}
+
+	// Separate function to add sample students
+	async function addSampleStudents() {
+		const sampleStudents = [
+			'Max Mustermann',
+			'Anna Schmidt',
+			'Tom Weber',
+			'Lisa Müller'
+		];
+		students = sampleStudents;
+		try {
+			await saveStudentList(db, students);
+			console.log('✅ Sample students added to database');
+		} catch (error) {
+			console.error('Error saving sample students:', error);
 		}
 	}
 
@@ -113,16 +168,24 @@
 			if (latestData && Object.keys(latestData).length > 0) {
 				currentData = { ...latestData };
 			} else {
-				// Initialize with empty data structure if no saved data
-				currentData = {
-					student: { name: studentName },
-					assessmentPeriod: {},
-					spracheSprechen: { assessments: [] },
-					lesen: { assessments: [] },
-					schreiben: { assessments: [] },
-					mathematik: { assessments: [] },
-					foerdermassnahmen: {}
-				};
+				// Special case: If this is Max Mustermann and no data exists, use example data
+				if (studentName === 'Max Mustermann') {
+					console.log('Loading example data for Max Mustermann...');
+					currentData = { ...foerderplanExample };
+					// Update the student name in the data to match
+					currentData.student = { ...currentData.student, name: studentName };
+				} else {
+					// Initialize with empty data structure if no saved data
+					currentData = {
+						student: { name: studentName },
+						assessmentPeriod: {},
+						spracheSprechen: { assessments: [] },
+						lesen: { assessments: [] },
+						schreiben: { assessments: [] },
+						mathematik: { assessments: [] },
+						foerdermassnahmen: {}
+					};
+				}
 			}
 
 			dispatch('studentChanged', {
@@ -288,6 +351,23 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Helpful message when no student is selected -->
+	{#if !currentStudent && students.length > 0}
+		<div class="no-student-selected">
+			<p>🎯 <strong>Schritt 1:</strong> Wählen Sie einen Schüler aus der Liste oben aus, um zu beginnen.</p>
+			<p>💡 <strong>Tipp:</strong> Klicken Sie auf das 👥 Symbol um weitere Schüler hinzuzufügen oder zu verwalten.</p>
+		</div>
+	{/if}
+
+	{#if students.length === 0}
+		<div class="no-students-message">
+			<p>📚 <strong>Willkommen!</strong> Fügen Sie Ihren ersten Schüler hinzu:</p>
+			<button class="btn btn-primary btn-large" on:click={() => (showStudentList = true)}>
+				➕ Ersten Schüler hinzufügen
+			</button>
+		</div>
+	{/if}
 
 	{#if showStudentList}
 		<div class="student-list-panel">
@@ -551,6 +631,40 @@
 		border-radius: 0.25rem;
 		margin-bottom: 0.5rem;
 		border: 1px solid #f59e0b;
+	}
+
+	.no-student-selected {
+		background: #e0f2fe;
+		border: 1px solid #0277bd;
+		border-radius: 8px;
+		padding: 1rem;
+		margin: 1rem 0;
+		color: #01579b;
+	}
+
+	.no-student-selected p {
+		margin: 0.5rem 0;
+	}
+
+	.no-students-message {
+		background: #f3e5f5;
+		border: 1px solid #7b1fa2;
+		border-radius: 8px;
+		padding: 1.5rem;
+		margin: 1rem 0;
+		text-align: center;
+		color: #4a148c;
+	}
+
+	.no-students-message p {
+		margin-bottom: 1rem;
+		font-size: 1.1rem;
+	}
+
+	.btn-large {
+		padding: 0.75rem 1.5rem;
+		font-size: 1.1rem;
+		font-weight: bold;
 	}
 
 	@keyframes spin {

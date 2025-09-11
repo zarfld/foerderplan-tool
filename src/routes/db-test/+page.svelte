@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { base } from '$app/paths';
 	import { initDB } from '$lib/utils/database';
 
 	let status = 'Initializing...';
@@ -56,7 +57,7 @@
 		{/if}
 
 		<div class="mt-6">
-			<a href="/" class="text-blue-600 hover:text-blue-800 underline">← Back to main app</a>
+			<a href="{base}/" class="text-blue-600 hover:text-blue-800 underline">← Back to main app</a>
 		</div>
 	</div>
 </main>

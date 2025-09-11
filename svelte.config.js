@@ -8,6 +8,10 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
+		// Configure base path for subdirectory deployment
+		paths: {
+			base: process.env.NODE_ENV === 'production' ? '/foerderplan-tool' : ''
+		},
 		// Static adapter for PWA deployment
 		adapter: adapter({
 			pages: 'build',

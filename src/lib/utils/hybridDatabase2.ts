@@ -35,10 +35,13 @@ interface DatabaseConfig {
 // Database mode
 type DatabaseMode = 'localStorage' | 'couchdb' | 'hybrid';
 
+// Singleton instance
+let hybridManagerInstance: HybridDatabaseManager | null = null;
+
 export class HybridDatabaseManager {
-	private localStoragePrefix: string;
+	private localStoragePrefix!: string;
 	private couchdbManager: any = null; // Changed from CouchDBSyncManager to any
-	private config: DatabaseConfig;
+	private config!: DatabaseConfig;
 	private mode: DatabaseMode = 'localStorage';
 	private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
 	private syncStatus: 'idle' | 'syncing' | 'error' | 'connected' | 'disconnected' = 'idle';
@@ -47,6 +50,12 @@ export class HybridDatabaseManager {
 	private syncCallbacks: ((status: string) => void)[] = [];
 
 	constructor(config: DatabaseConfig) {
+		// Prevent multiple instances
+		if (hybridManagerInstance) {
+			console.log('💡 Returning existing HybridDatabaseManager instance');
+			return hybridManagerInstance;
+		}
+		
 		this.config = config;
 		this.localStoragePrefix = `foerderplan_${config.localName}_`;
 
@@ -60,6 +69,14 @@ export class HybridDatabaseManager {
 		if (config.useCouchDB) {
 			this.initializeCouchDB();
 		}
+		
+		// Store singleton instance
+		hybridManagerInstance = this;
+	}
+	
+	// Static method to reset singleton (useful for testing or mode changes)
+	static resetInstance(): void {
+		hybridManagerInstance = null;
 	}
 
 	private async initializeCouchDB() {
@@ -72,7 +89,7 @@ export class HybridDatabaseManager {
 			console.log('🔄 Creating CouchDBSyncManager instance...');
 			this.couchdbManager = new CouchDBSyncManager(couchdbConfig, environment);
 			
-			// Initialize the CouchDBSyncManager (loads adapters and sets up databases)
+			// Initialize the CouchDBSyncManager (loads PouchDB and sets up databases)
 			console.log('🔄 Initializing CouchDBSyncManager...');
 			await this.couchdbManager.initialize();
 
@@ -249,16 +266,211 @@ export class HybridDatabaseManager {
 	}
 
 	async manualSync(): Promise<boolean> {
-		if (this.couchdbManager) {
-			try {
-				await this.couchdbManager.startSync();
-				return true;
-			} catch (error) {
-				console.error('❌ Manual sync failed:', error);
-				return false;
+		if (!this.couchdbManager) {
+			console.warn('⚠️ CouchDB not available for manual sync');
+			return false;
+		}
+
+		try {
+			this.syncStatus = 'syncing';
+			this.notifySyncCallbacks();
+
+			// First, push any localStorage data that might not be synced
+			await this.syncLocalStorageData();
+
+			// Then perform a full sync
+			const pushResult = await this.couchdbManager.pushToRemote();
+			const pullResult = await this.couchdbManager.pullFromRemote();
+
+			console.log('✅ Manual sync completed:', { pushResult, pullResult });
+			
+			this.syncStatus = 'connected';
+			this.notifySyncCallbacks();
+			return true;
+		} catch (error) {
+			console.error('❌ Manual sync failed:', error);
+			this.syncStatus = 'error';
+			this.notifySyncCallbacks();
+			return false;
+		}
+	}
+
+	// Sync all localStorage data to CouchDB with conflict resolution
+	async syncLocalStorageData(): Promise<void> {
+		if (!this.couchdbManager || typeof localStorage === 'undefined') {
+			return;
+		}
+
+		console.log('🔄 Syncing localStorage data to CouchDB...');
+		
+		const syncPromises = [];
+		let itemCount = 0;
+		
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			// Look for all foerderplan keys, not just our specific prefix
+			if (key && key.startsWith('foerderplan_')) {
+				try {
+					const value = localStorage.getItem(key);
+					if (value) {
+						const doc = JSON.parse(value);
+						
+						// Skip invalid documents
+						if (!doc || typeof doc !== 'object') {
+							console.warn(`⚠️ Skipping invalid document in ${key}`);
+							continue;
+						}
+						
+						// Clean up the document ID properly
+						let docId = this.cleanDocumentId(key, doc);
+						
+						// Skip if we can't determine a valid document ID
+						if (!docId || docId === key) {
+							console.warn(`⚠️ Skipping document with invalid ID: ${key}`);
+							continue;
+						}
+						
+						// Ensure the document has a clean _id
+						doc._id = docId;
+						
+						console.log(`🔄 Preparing to sync: localStorage key="${key}" -> docId="${docId}"`);
+
+						// Push to CouchDB with conflict resolution
+						syncPromises.push(
+							this.syncDocumentWithConflictResolution(doc, docId)
+								.catch(error => {
+									console.warn(`⚠️ Skipped problematic document ${docId}:`, error);
+									// Don't fail the entire sync for one bad document
+								})
+						);
+						itemCount++;
+					}
+				} catch (error) {
+					console.warn(`⚠️ Failed to parse localStorage item ${key}:`, error);
+				}
 			}
 		}
-		return false;
+
+		await Promise.all(syncPromises);
+		console.log(`✅ Processed ${itemCount} localStorage items for CouchDB sync`);
+	}
+
+	// Helper method to clean up document IDs from localStorage keys
+	private cleanDocumentId(localStorageKey: string, doc: any): string {
+		// First, try to extract from localStorage key
+		let docId = localStorageKey;
+		
+		// Remove various possible prefixes
+		docId = docId.replace(/^foerderplan_/, '');
+		docId = docId.replace(/^foerderplan-local_/, '');
+		docId = docId.replace(/^[^_]*_/, ''); // Remove any remaining prefix before first underscore
+		
+		// If document already has an _id, prefer it if it's cleaner
+		if (doc._id && !doc._id.includes('foerderplan_') && !doc._id.includes('foerderplan-local_')) {
+			docId = doc._id;
+		}
+		
+		// Final cleanup: ensure we have a clean ID
+		if (docId.includes('foerderplan_') || docId.includes('foerderplan-local_')) {
+			// Extract the meaningful part (usually after the last underscore before timestamp)
+			const parts = docId.split('_');
+			// Look for assessment IDs, current-foerderplan, student-list, etc.
+			for (let i = parts.length - 1; i >= 0; i--) {
+				const part = parts.slice(i).join('_');
+				if (part.startsWith('assessment-') || 
+					part === 'current-foerderplan' || 
+					part === 'student-list' ||
+					part.match(/^[a-zA-Z-]+\d/)) { // IDs that start with letters and contain numbers
+					docId = part;
+					break;
+				}
+			}
+		}
+		
+		console.log(`📝 Cleaned document ID: "${localStorageKey}" -> "${docId}"`);
+		return docId;
+	}
+
+	// Helper method to sync a single document with conflict resolution
+	private async syncDocumentWithConflictResolution(doc: any, docId: string): Promise<void> {
+		if (!this.couchdbManager) return;
+		
+		try {
+			// Clean the document first
+			const cleanDoc = { ...doc, _id: docId };
+			delete cleanDoc._rev; // Remove any stale revision info
+			
+			// First, check if document exists in CouchDB
+			let existingDoc = null;
+			try {
+				existingDoc = await this.couchdbManager.get(docId);
+			} catch (error: any) {
+				if (error.status !== 404) {
+					// Real error, not just "document not found"
+					throw error;
+				}
+				// Document doesn't exist - this is OK
+			}
+			
+			if (existingDoc) {
+				// Document exists - update it with correct revision
+				const updatedDoc = {
+					...cleanDoc,
+					_rev: existingDoc._rev
+				};
+				
+				try {
+					await this.couchdbManager.put(updatedDoc);
+					console.log(`✅ Updated existing document: ${docId}`);
+				} catch (conflictError: any) {
+					if (conflictError.status === 409) {
+						// Still conflict - try one more time with fresh revision
+						console.log(`⚠️ Conflict persists for ${docId}, attempting force sync...`);
+						await this.forceSync(docId, cleanDoc);
+					} else {
+						throw conflictError;
+					}
+				}
+			} else {
+				// Document doesn't exist - create new one
+				await this.couchdbManager.put(cleanDoc);
+				console.log(`✅ Created new document: ${docId}`);
+			}
+		} catch (error: any) {
+			console.error(`❌ Failed to update ${docId}:`, error);
+			// Don't throw - continue with other documents
+		}
+	}
+
+	// Force sync with multiple retry attempts
+	private async forceSync(docId: string, doc: any, maxRetries: number = 3): Promise<void> {
+		if (!this.couchdbManager) return;
+		
+		for (let attempt = 1; attempt <= maxRetries; attempt++) {
+			try {
+				// Get fresh revision each time
+				const existingDoc = await this.couchdbManager.get(docId);
+				const updatedDoc = {
+					...doc,
+					_id: docId,
+					_rev: existingDoc._rev
+				};
+				
+				await this.couchdbManager.put(updatedDoc);
+				console.log(`✅ Force synced document: ${docId} (attempt ${attempt})`);
+				return;
+			} catch (error: any) {
+				if (error.status === 409 && attempt < maxRetries) {
+					console.log(`⚠️ Force sync attempt ${attempt} failed for ${docId}, retrying...`);
+					// Wait a bit before retry
+					await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+					continue;
+				} else {
+					console.error(`❌ Force sync failed for ${docId}:`, error);
+					break;
+				}
+			}
+		}
 	}
 
 	// Status and callback methods

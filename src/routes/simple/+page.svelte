@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 
 	let step = 1;
 	let error = '';
@@ -67,13 +68,13 @@
 			<br /><br />
 			Try: <strong>Ctrl+F5</strong> to hard refresh the main page.
 		</div>
-		<a href="/" class="btn">Go to Main Page</a>
+		<a href="{base}/" class="btn">Go to Main Page</a>
 	{/if}
 
 	<div class="links">
-		<a href="/test">Test Page</a> |
-		<a href="/debug">Debug Page</a> |
-		<a href="/demo">Demo Page</a>
+		<a href="{base}/test">Test Page</a> |
+		<a href="{base}/debug">Debug Page</a> |
+		<a href="{base}/demo">Demo Page</a>
 	</div>
 </main>
 

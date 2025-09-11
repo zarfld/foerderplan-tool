@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { initDB, getDatabaseMode, setDatabaseMode } from '$lib/utils/database';
+	import { initDB, getDatabaseMode, setDatabaseMode, getDatabaseEnvironment, setDatabaseEnvironment } from '$lib/utils/database';
 
 	let db: any = null;
 	let syncStatus = 'initializing';
@@ -22,6 +22,9 @@
 		if (browser) {
 			// Get current database mode
 			selectedDbMode = getDatabaseMode();
+			
+			// Get current environment setting
+			couchdbConfig.environment = getDatabaseEnvironment();
 			
 			// Initialize database
 			db = await initDB();
@@ -174,6 +177,9 @@
 		testResult = '';
 
 		try {
+			// Save the environment setting
+			setDatabaseEnvironment(couchdbConfig.environment);
+			
 			// Reinitialize database with new environment
 			db = await initDB();
 			syncStatus = db.getSyncStatus ? db.getSyncStatus() : 'offline';

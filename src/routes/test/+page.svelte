@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	export let data: any;
 	export let params: any = undefined; // Accept params prop to prevent warning
 
@@ -14,7 +15,7 @@
 	<h1>🧪 Test Page</h1>
 	<p>{data.message}</p>
 	<p>If you can see this page, the basic SvelteKit setup is working.</p>
-	<a href="/">← Back to Main</a>
+	<a href="{base}/">← Back to Main</a>
 </main>
 
 <style>

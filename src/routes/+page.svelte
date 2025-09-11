@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { base } from '$app/paths';
 	import { saveDocument, exportToPDF } from '$lib/utils/dataExport';
 	import { initDB, saveData, loadData, saveAssessment } from '$lib/utils/database';
 	import FoerderplanForm from '$lib/components/FoerderplanForm.svelte';
@@ -201,10 +202,11 @@
 			</div>
 
 			<nav class="header-nav">
-				<a href="/demo" class="nav-link">📊 Demo</a>
-				<a href="/timeline-test" class="nav-link">📈 Timeline Test</a>
-				<a href="/couchdb-test" class="nav-link">🗄️ CouchDB Test</a>
-				<a href="/settings" class="nav-link">⚙️ Einstellungen</a>
+				<a href="{base}/demo" class="nav-link">📊 Demo</a>
+				<a href="{base}/migrate" class="nav-link">🔄 Migration</a>
+				<a href="{base}/timeline-test" class="nav-link">📈 Timeline Test</a>
+				<a href="{base}/couchdb-test" class="nav-link">🗄️ CouchDB Test</a>
+				<a href="{base}/settings" class="nav-link">⚙️ Einstellungen</a>
 			</nav>
 		</div>
 
@@ -231,7 +233,7 @@
 			<button on:click={toggleAnalysis} class="btn btn-info">
 				{showAnalysis ? '📝 Zurück zum Formular' : '📊 Analyse & Vergleich'}
 			</button>
-			<a href="/demo" class="btn btn-info"> 🎭 View Demo </a>
+			<a href="{base}/demo" class="btn btn-info"> 🎭 View Demo </a>
 		</div>
 	</header>
 

@@ -1,5 +1,6 @@
 <!-- @ts-nocheck -->
 <script lang="ts">
+	import { base } from '$app/paths';
 	import DatabaseSettings from '$lib/components/DatabaseSettings.svelte';
 </script>
 
@@ -9,7 +10,7 @@
 
 <div class="settings-page">
 	<nav class="breadcrumb">
-		<a href="/">← Zurück zur Hauptseite</a>
+		<a href="{base}/">← Zurück zur Hauptseite</a>
 	</nav>
 
 	<DatabaseSettings />

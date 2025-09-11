@@ -98,6 +98,8 @@ const mockDB: any = {
 
 let db: any = null;
 let dbMode: 'localStorage' | 'couchdb' | 'hybrid' = 'localStorage';
+let isInitializing: boolean = false;
+let initPromise: Promise<any> | null = null;
 
 // Database mode can be changed via localStorage setting
 export function getDatabaseMode(): 'localStorage' | 'couchdb' | 'hybrid' {
@@ -116,6 +118,20 @@ export function setDatabaseMode(mode: 'localStorage' | 'couchdb' | 'hybrid'): vo
 		dbMode = mode;
 		// Reset database instance to force reinitialize
 		db = null;
+		isInitializing = false;
+		initPromise = null;
+		
+		// Reset HybridDatabaseManager singleton if it exists
+		try {
+			import('./hybridDatabase2.js').then((module) => {
+				if (module.HybridDatabaseManager?.resetInstance) {
+					module.HybridDatabaseManager.resetInstance();
+				}
+			});
+		} catch (error) {
+			// Ignore if module not loaded yet
+		}
+		
 		console.log(`🔄 Database mode changed to: ${mode}`);
 	}
 }
@@ -176,10 +192,34 @@ export function cleanLocalStorage(): void {
 }
 
 export async function initDB(): Promise<any> {
+	// Return existing instance if already initialized
 	if (db) {
+		console.log('💡 Database already initialized, returning existing instance');
 		return db;
 	}
+	
+	// If already initializing, wait for the existing promise
+	if (isInitializing && initPromise) {
+		console.log('⏳ Database initialization in progress, waiting...');
+		return initPromise;
+	}
+	
+	// Start initialization
+	isInitializing = true;
+	initPromise = _initializeDatabase();
+	
+	try {
+		const result = await initPromise;
+		isInitializing = false;
+		return result;
+	} catch (error) {
+		isInitializing = false;
+		initPromise = null;
+		throw error;
+	}
+}
 
+async function _initializeDatabase(): Promise<any> {
 	// Clean localStorage from invalid entries first
 	cleanLocalStorage();
 
@@ -191,6 +231,10 @@ export async function initDB(): Promise<any> {
 			// Try to initialize CouchDB connection
 			try {
 				console.log('🔄 Attempting to load HybridDatabaseManager...');
+				
+				// Get the current environment setting
+				const environment = getDatabaseEnvironment();
+				console.log(`🌍 Using environment: ${environment}`);
 				
 				// First try to load the module to see if there are import issues
 				const hybridModule = await import('./hybridDatabase2.js');
@@ -204,6 +248,7 @@ export async function initDB(): Promise<any> {
 				console.log('🔄 Creating HybridDatabaseManager instance...');
 				const hybridDb = new HybridDatabaseManager({
 					localName: 'foerderplan-local',
+					environment: environment,
 					useCouchDB: true,
 					autoSync: true
 				});
@@ -211,7 +256,7 @@ export async function initDB(): Promise<any> {
 				console.log('✅ HybridDatabaseManager instance created successfully');
 				
 				// Wait a bit for async initialization to complete
-				await new Promise(resolve => setTimeout(resolve, 2000));
+				await new Promise(resolve => setTimeout(resolve, 1000));
 				
 				// Verify that the instance has required methods
 				if (typeof hybridDb.put !== 'function' || 
@@ -745,5 +790,36 @@ export async function getProgressTracking(
 	} catch (error) {
 		console.error('Error in progress tracking:', error);
 		throw error;
+	}
+}
+
+// Environment functions
+const ENVIRONMENT_KEY = 'foerderplan_db_environment';
+
+export function getDatabaseEnvironment(): 'test' | 'production' | 'backup' {
+	if (typeof window === 'undefined') return 'test';
+	const env = localStorage.getItem(ENVIRONMENT_KEY);
+	return (env as 'test' | 'production' | 'backup') || 'test';
+}
+
+export function setDatabaseEnvironment(environment: 'test' | 'production' | 'backup'): void {
+	if (typeof window === 'undefined') return;
+	localStorage.setItem(ENVIRONMENT_KEY, environment);
+	console.log(`📝 Database environment set to: ${environment}`);
+	
+	// Reset database instance to force reinitialize with new environment
+	db = null;
+	isInitializing = false;
+	initPromise = null;
+	
+	// Reset HybridDatabaseManager singleton if it exists
+	try {
+		import('./hybridDatabase2.js').then((module) => {
+			if (module.HybridDatabaseManager?.resetInstance) {
+				module.HybridDatabaseManager.resetInstance();
+			}
+		});
+	} catch (error) {
+		// Ignore if module not loaded yet
 	}
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { base } from '$app/paths';
 	import { exportToPDF, saveDocument } from '$lib/utils/dataExport';
 	import { initDB, saveData, loadData } from '$lib/utils/database';
 	import FoerderplanForm from '$lib/components/FoerderplanForm.svelte';
@@ -111,7 +112,7 @@
 		{/if}
 
 		<div class="toolbar">
-			<a href="/" class="btn btn-secondary"> ← Back to Main </a>
+			<a href="{base}/" class="btn btn-secondary"> ← Back to Main </a>
 			<button on:click={resetToExample} class="btn btn-secondary"> 🔄 Reset to Example </button>
 			<button on:click={handleSaveJSON} class="btn btn-primary"> 💾 Save JSON </button>
 			<button on:click={handleExportPDF} class="btn btn-primary"> 📄 Export PDF </button>

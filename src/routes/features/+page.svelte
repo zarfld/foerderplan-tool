@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import { initDB, saveStudentList, saveAssessment } from '$lib/utils/database';
 	import StudentManager from '$lib/components/StudentManager.svelte';
 	import AssessmentAnalysis from '$lib/components/AssessmentAnalysis.svelte';
@@ -428,7 +429,7 @@
 		</p>
 
 		<nav class="breadcrumb">
-			<a href="/">← Zurück zum Hauptmenü</a>
+			<a href="{base}/">← Zurück zum Hauptmenü</a>
 		</nav>
 	</header>
 
