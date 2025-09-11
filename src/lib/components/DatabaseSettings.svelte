@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { initDB } from '$lib/utils/database';
+	import { initDB, getDatabaseMode, setDatabaseMode } from '$lib/utils/database';
 
 	let db: any = null;
 	let syncStatus = 'initializing';
@@ -11,6 +11,7 @@
 	let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 	let testResult = '';
 	let isLoading = false;
+	let selectedDbMode: 'localStorage' | 'couchdb' | 'hybrid' = 'localStorage';
 	let couchdbConfig = {
 		localUrl: 'http://157.247.1.102:5984',
 		webUrl: 'https://couchdb.ettingshaus14.synology.me',
@@ -19,12 +20,15 @@
 
 	onMount(async () => {
 		if (browser) {
+			// Get current database mode
+			selectedDbMode = getDatabaseMode();
+			
 			// Initialize database
 			db = await initDB();
 
 			// Handle missing functions gracefully for localStorage mode
 			syncStatus = db.getSyncStatus ? db.getSyncStatus() : 'offline';
-			dbMode = db.getMode ? db.getMode() : 'localStorage';
+			dbMode = db.getMode ? db.getMode() : selectedDbMode;
 
 			// Update stats
 			await updateStats();
@@ -130,6 +134,36 @@
 				return 'CouchDB (Online)';
 			default:
 				return 'Unbekannt';
+		}
+	}
+
+	async function switchDatabaseMode() {
+		if (!browser) return;
+
+		isLoading = true;
+		testResult = '';
+
+		try {
+			// Set new database mode
+			setDatabaseMode(selectedDbMode);
+			
+			// Reinitialize database with new mode
+			db = await initDB();
+			syncStatus = db.getSyncStatus ? db.getSyncStatus() : 'offline';
+			dbMode = db.getMode ? db.getMode() : selectedDbMode;
+
+			await updateStats();
+			testResult = `✅ Datenbank-Modus erfolgreich zu "${getModeDescription(selectedDbMode)}" gewechselt`;
+			
+			// Auto-reload page to ensure clean state
+			setTimeout(() => {
+				window.location.reload();
+			}, 2000);
+			
+		} catch (error: any) {
+			testResult = `❌ Modus-Wechsel fehlgeschlagen: ${error?.message || error}`;
+		} finally {
+			isLoading = false;
 		}
 	}
 
@@ -247,6 +281,61 @@
 				</span>
 			</div>
 		</div>
+	</div>
+
+	<!-- Database Mode Selection -->
+	<div class="config-section">
+		<h3>💽 Datenbank-Modus</h3>
+		<p class="config-description">
+			Wählen Sie den gewünschten Datenbank-Modus. Die Änderung erfordert einen Neustart der App.
+		</p>
+
+		<div class="mode-selector">
+			<label>
+				<input
+					type="radio"
+					bind:group={selectedDbMode}
+					value="localStorage"
+				/>
+				<span class="mode-option">
+					📱 LocalStorage (Offline)
+					<small>Nur lokale Speicherung im Browser</small>
+				</span>
+			</label>
+
+			<label>
+				<input
+					type="radio"
+					bind:group={selectedDbMode}
+					value="hybrid"
+				/>
+				<span class="mode-option">
+					🔄 Hybrid (LocalStorage + CouchDB)
+					<small>Lokale Speicherung mit CouchDB-Synchronisation</small>
+				</span>
+			</label>
+
+			<label>
+				<input
+					type="radio"
+					bind:group={selectedDbMode}
+					value="couchdb"
+				/>
+				<span class="mode-option">
+					🌐 CouchDB (Online)
+					<small>Direkte CouchDB-Verbindung</small>
+				</span>
+			</label>
+		</div>
+
+		{#if selectedDbMode !== dbMode}
+			<div class="mode-change-warning">
+				⚠️ Der gewählte Modus unterscheidet sich vom aktuellen Modus. Klicken Sie "Modus wechseln" um die Änderung zu übernehmen.
+			</div>
+			<button class="btn btn-primary mode-switch-btn" on:click={switchDatabaseMode} disabled={isLoading}>
+				{isLoading ? '⏳ Wechselt Modus...' : '🔄 Modus wechseln'}
+			</button>
+		{/if}
 	</div>
 
 	<!-- Environment Management -->
@@ -473,7 +562,19 @@
 		border: 1px solid #e5e7eb;
 	}
 
-	.environment-selector label {
+	.mode-selector {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin: 1rem 0;
+		padding: 1rem;
+		background: #f0f9ff;
+		border-radius: 8px;
+		border: 1px solid #bfdbfe;
+	}
+
+	.environment-selector label,
+	.mode-selector label {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
@@ -483,23 +584,42 @@
 		transition: background-color 0.2s;
 	}
 
-	.environment-selector label:hover {
+	.environment-selector label:hover,
+	.mode-selector label:hover {
 		background: #f3f4f6;
 	}
 
-	.environment-selector input[type='radio'] {
+	.environment-selector input[type='radio'],
+	.mode-selector input[type='radio'] {
 		margin: 0;
 	}
 
-	.env-option {
+	.env-option,
+	.mode-option {
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
 	}
 
-	.env-option small {
+	.env-option small,
+	.mode-option small {
 		color: #6b7280;
 		font-size: 0.75rem;
+	}
+
+	.mode-change-warning {
+		background: #fef3c7;
+		border: 1px solid #f59e0b;
+		color: #92400e;
+		padding: 0.75rem;
+		border-radius: 6px;
+		margin: 1rem 0;
+		font-size: 0.875rem;
+	}
+
+	.mode-switch-btn {
+		width: 100%;
+		margin-top: 0.5rem;
 	}
 
 	.test-result {

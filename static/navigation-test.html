@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Test - Förderplan Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .nav-link {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #007acc;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: #005a9e;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .current-url {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧭 Navigation Test - Förderplan Tool</h1>
+        
+        <div class="info">
+            <strong>Purpose:</strong> This page helps test navigation links and routing within the Förderplan Tool application.
+        </div>
+        
+        <div class="current-url">
+            <strong>Current URL:</strong> <span id="current-url"></span>
+        </div>
+        
+        <div class="nav-links">
+            <h3>Main Application Pages:</h3>
+            <a href="./index.html" class="nav-link">🏠 Home (index.html)</a>
+            <a href="./settings.html" class="nav-link">⚙️ Settings (settings.html)</a>
+            <a href="./demo.html" class="nav-link">📝 Demo (demo.html)</a>
+            <a href="./features.html" class="nav-link">✨ Features (features.html)</a>
+            <a href="./simple.html" class="nav-link">📄 Simple (simple.html)</a>
+            
+            <h3>Debug & Test Pages:</h3>
+            <a href="./debug.html" class="nav-link">🐛 Debug (debug.html)</a>
+            <a href="./db-test.html" class="nav-link">🗄️ Database Test (db-test.html)</a>
+            <a href="./couchdb-test.html" class="nav-link">☁️ CouchDB Test (couchdb-test.html)</a>
+            <a href="./test.html" class="nav-link">🧪 Test (test.html)</a>
+            <a href="./timeline-test.html" class="nav-link">📅 Timeline Test (timeline-test.html)</a>
+            
+            <h3>Utility Pages:</h3>
+            <a href="./debug-localStorage.html" class="nav-link">💾 LocalStorage Debug</a>
+            <a href="./check-localStorage.html" class="nav-link">✅ Check LocalStorage</a>
+            <a href="./data-migration.html" class="nav-link">📦 Data Migration</a>
+            
+            <h3>External Test:</h3>
+            <a href="http://157.247.1.103/foerderplan-tool/" class="nav-link" target="_blank">🌐 Test Full URL</a>
+        </div>
+        
+        <div class="info">
+            <h3>🔍 Testing Notes:</h3>
+            <ul>
+                <li><strong>Relative Links:</strong> All links above use relative paths (./filename.html)</li>
+                <li><strong>Base URL:</strong> Links should work regardless of whether you access via IP or network path</li>
+                <li><strong>Expected Behavior:</strong> Each link should open the corresponding page without 404 errors</li>
+                <li><strong>SvelteKit Routing:</strong> The main app uses SvelteKit routing, so some URLs might look different</li>
+            </ul>
+        </div>
+        
+        <div class="info">
+            <h3>🚀 Test Instructions:</h3>
+            <ol>
+                <li>Access this page from: <code>http://157.247.1.103/foerderplan-tool/navigation-test.html</code></li>
+                <li>Click each link to verify navigation works correctly</li>
+                <li>Check that URLs remain consistent and don't break</li>
+                <li>Report any links that result in 404 or incorrect routing</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Display current URL
+        document.getElementById('current-url').textContent = window.location.href;
+        
+        // Add click handlers to track navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                console.log('Navigating to:', this.href);
+                console.log('Current location:', window.location.href);
+            });
+        });
+    </script>
+</body>
+</html>

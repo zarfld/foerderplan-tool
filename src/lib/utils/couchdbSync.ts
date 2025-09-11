@@ -2,12 +2,30 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import PouchDB from 'pouchdb';
-import HttpAdapter from 'pouchdb-adapter-http';
-import IdbAdapter from 'pouchdb-adapter-idb';
 
-// Add adapters
-PouchDB.plugin(HttpAdapter);
-PouchDB.plugin(IdbAdapter);
+// Global flag to track if adapters are loaded
+let adaptersLoaded = false;
+
+// Function to ensure adapters are loaded
+async function ensureAdaptersLoaded() {
+	if (adaptersLoaded) return;
+	
+	try {
+		// Load adapters using require-like imports for better compatibility
+		const HttpAdapter = await import('pouchdb-adapter-http');
+		const IdbAdapter = await import('pouchdb-adapter-idb');
+		
+		// Add adapters to PouchDB - handle both default and named exports
+		PouchDB.plugin(HttpAdapter.default || HttpAdapter);
+		PouchDB.plugin(IdbAdapter.default || IdbAdapter);
+		
+		adaptersLoaded = true;
+		console.log('✅ PouchDB adapters loaded successfully');
+	} catch (error) {
+		console.error('❌ Failed to load PouchDB adapters:', error);
+		throw error;
+	}
+}
 
 export interface CouchDBConfig {
 	localUrl: string;
@@ -40,8 +58,17 @@ export class CouchDBSyncManager {
 	constructor(config: CouchDBConfig, environment: 'test' | 'production' | 'backup' = 'test') {
 		this.config = config;
 		this.currentDatabase = config.databases[environment];
+		// Don't call setupDatabases yet - wait for init
+	}
+
+	async initialize() {
+		await ensureAdaptersLoaded();
 		this.setupDatabases();
 		this.setupOnlineListener();
+	}
+
+	private async init() {
+		await this.initialize();
 	}
 
 	private setupDatabases() {
@@ -52,6 +79,12 @@ export class CouchDBSyncManager {
 
 		// Remote database (CouchDB) - Direct connection now that CORS is configured
 		const remoteUrl = `${this.config.localUrl}${this.currentDatabase}`;
+		console.log(`🔧 Setting up CouchDB connection:`);
+		console.log(`   - Local URL: ${this.config.localUrl}`);
+		console.log(`   - Web URL: ${this.config.webUrl}`);
+		console.log(`   - Database: ${this.currentDatabase}`);
+		console.log(`   - Full Remote URL: ${remoteUrl}`);
+		
 		this.remoteDB = new PouchDB(remoteUrl, {
 			adapter: 'http',
 			auth: {
@@ -85,9 +118,12 @@ export class CouchDBSyncManager {
 
 	async testConnection(): Promise<{ success: boolean; error?: string; info?: any }> {
 		try {
+			console.log(`🔍 Testing CouchDB connection to: ${this.remoteDB.name}`);
 			const info = await this.remoteDB.info();
+			console.log(`✅ Connection test successful:`, info);
 			return { success: true, info };
 		} catch (error) {
+			console.error(`❌ Connection test failed:`, error);
 			return {
 				success: false,
 				error: `Connection failed: ${error.message}. This might be due to CORS or network issues.`

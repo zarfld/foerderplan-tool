@@ -1,8 +1,6 @@
 // Enhanced Hybrid Database Implementation: localStorage + CouchDB Sync
 // Supports offline-first with CouchDB sync when available
 
-import { CouchDBSyncManager } from './couchdbSync.js';
-
 // CouchDB Configuration für direkte Verbindung
 const couchdbConfig = {
 	localUrl: 'http://157.247.1.102:5984/',
@@ -39,7 +37,7 @@ type DatabaseMode = 'localStorage' | 'couchdb' | 'hybrid';
 
 export class HybridDatabaseManager {
 	private localStoragePrefix: string;
-	private couchdbManager: CouchDBSyncManager | null = null;
+	private couchdbManager: any = null; // Changed from CouchDBSyncManager to any
 	private config: DatabaseConfig;
 	private mode: DatabaseMode = 'localStorage';
 	private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -66,10 +64,20 @@ export class HybridDatabaseManager {
 
 	private async initializeCouchDB() {
 		try {
+			// Dynamically import CouchDBSyncManager to avoid import issues
+			console.log('🔄 Loading CouchDBSyncManager...');
+			const { CouchDBSyncManager } = await import('./couchdbSync.js');
+			
 			const environment = this.config.environment || getCurrentEnvironment();
+			console.log('🔄 Creating CouchDBSyncManager instance...');
 			this.couchdbManager = new CouchDBSyncManager(couchdbConfig, environment);
+			
+			// Initialize the CouchDBSyncManager (loads adapters and sets up databases)
+			console.log('🔄 Initializing CouchDBSyncManager...');
+			await this.couchdbManager.initialize();
 
 			// Test connection
+			console.log('🔄 Testing CouchDB connection...');
 			const connectionTest = await this.couchdbManager.testConnection();
 			if (connectionTest.success) {
 				this.mode = 'hybrid';
@@ -92,6 +100,7 @@ export class HybridDatabaseManager {
 			console.error('❌ Failed to initialize CouchDB:', error);
 			this.mode = 'localStorage';
 			this.syncStatus = 'error';
+			this.couchdbManager = null;
 		}
 
 		this.notifySyncCallbacks();

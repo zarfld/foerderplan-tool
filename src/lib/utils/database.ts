@@ -34,16 +34,39 @@ const mockDB: any = {
 		}
 
 		const rows = keys.map((key) => {
-			const doc = JSON.parse(localStorage.getItem(key) || '{}');
-			return {
-				id: doc._id,
-				key: doc._id,
-				value: { rev: doc._rev },
-				doc: options.include_docs ? doc : undefined
-			};
-		});
+			try {
+				const docString = localStorage.getItem(key);
+				if (!docString) return null;
+				
+				// Check if it's valid JSON first
+				const doc = JSON.parse(docString);
+				
+				// Ensure it has required fields
+				if (!doc._id) {
+					console.warn(`⚠️ Document in localStorage missing _id: ${key}`);
+					return null;
+				}
+				
+				return {
+					id: doc._id,
+					key: doc._id,
+					value: { rev: doc._rev },
+					doc: options.include_docs ? doc : undefined
+				};
+			} catch (error) {
+				console.warn(`⚠️ Skipping invalid JSON in localStorage key: ${key}`, error);
+				// Remove the invalid entry
+				try {
+					localStorage.removeItem(key);
+					console.log(`🧹 Removed invalid localStorage entry: ${key}`);
+				} catch (removeError) {
+					console.error(`❌ Failed to remove invalid key ${key}:`, removeError);
+				}
+				return null;
+			}
+		}).filter(row => row !== null); // Filter out invalid entries
 
-		console.log(`📚 Retrieved ${rows.length} documents from localStorage`);
+		console.log(`📚 Retrieved ${rows.length} valid documents from localStorage`);
 		return {
 			total_rows: rows.length,
 			offset: 0,
@@ -74,26 +97,173 @@ const mockDB: any = {
 };
 
 let db: any = null;
+let dbMode: 'localStorage' | 'couchdb' | 'hybrid' = 'localStorage';
+
+// Database mode can be changed via localStorage setting
+export function getDatabaseMode(): 'localStorage' | 'couchdb' | 'hybrid' {
+	if (typeof window !== 'undefined') {
+		const mode = localStorage.getItem('foerderplan_db_mode');
+		if (mode === 'couchdb' || mode === 'hybrid') {
+			return mode as 'couchdb' | 'hybrid';
+		}
+	}
+	return 'localStorage';
+}
+
+export function setDatabaseMode(mode: 'localStorage' | 'couchdb' | 'hybrid'): void {
+	if (typeof window !== 'undefined') {
+		localStorage.setItem('foerderplan_db_mode', mode);
+		dbMode = mode;
+		// Reset database instance to force reinitialize
+		db = null;
+		console.log(`🔄 Database mode changed to: ${mode}`);
+	}
+}
+
+// Clean localStorage from invalid entries
+export function cleanLocalStorage(): void {
+	if (typeof window === 'undefined') return;
+	
+	const keysToRemove: string[] = [];
+	
+	for (let i = 0; i < localStorage.length; i++) {
+		const key = localStorage.key(i);
+		if (key?.startsWith('foerderplan_')) {
+			// Skip the database mode setting - it's stored as plain text, not JSON
+			if (key === 'foerderplan_db_mode') {
+				continue;
+			}
+			
+			try {
+				const value = localStorage.getItem(key);
+				if (value) {
+					// Check if it's valid JSON
+					JSON.parse(value);
+				} else {
+					keysToRemove.push(key);
+				}
+			} catch (error) {
+				console.warn(`🧹 Removing invalid localStorage entry: ${key}`, error);
+				keysToRemove.push(key);
+			}
+		}
+	}
+	
+	// Check for the database mode setting specifically (but don't try to parse as JSON)
+	try {
+		const dbModeValue = localStorage.getItem('foerderplan_db_mode');
+		if (dbModeValue && dbModeValue !== 'localStorage' && dbModeValue !== 'couchdb' && dbModeValue !== 'hybrid') {
+			console.warn(`🧹 Removing invalid db_mode setting: ${dbModeValue}`);
+			localStorage.removeItem('foerderplan_db_mode');
+		}
+	} catch (error) {
+		console.warn('🧹 Error checking db_mode setting:', error);
+		localStorage.removeItem('foerderplan_db_mode');
+	}
+	
+	// Remove all invalid keys
+	keysToRemove.forEach(key => {
+		try {
+			localStorage.removeItem(key);
+		} catch (error) {
+			console.error(`❌ Failed to remove key ${key}:`, error);
+		}
+	});
+	
+	if (keysToRemove.length > 0) {
+		console.log(`🧹 Cleaned ${keysToRemove.length} invalid localStorage entries`);
+	}
+}
 
 export async function initDB(): Promise<any> {
 	if (db) {
 		return db;
 	}
 
-	console.log('🚀 Initializing Database (localStorage mode)...');
+	// Clean localStorage from invalid entries first
+	cleanLocalStorage();
 
-	// For now, use enhanced localStorage
-	// TODO: Add CouchDB sync when PouchDB is properly configured
-	db = mockDB;
+	dbMode = getDatabaseMode();
+	console.log(`🚀 Initializing Database (${dbMode} mode)...`);
 
 	try {
-		// Initialize mock database (localStorage-based)
-		db = mockDB;
+		if (dbMode === 'couchdb' || dbMode === 'hybrid') {
+			// Try to initialize CouchDB connection
+			try {
+				console.log('🔄 Attempting to load HybridDatabaseManager...');
+				
+				// First try to load the module to see if there are import issues
+				const hybridModule = await import('./hybridDatabase2.js');
+				console.log('✅ HybridDatabaseManager module loaded successfully');
+				
+				const { HybridDatabaseManager } = hybridModule;
+				if (!HybridDatabaseManager) {
+					throw new Error('HybridDatabaseManager not found in module exports');
+				}
+				
+				console.log('🔄 Creating HybridDatabaseManager instance...');
+				const hybridDb = new HybridDatabaseManager({
+					localName: 'foerderplan-local',
+					useCouchDB: true,
+					autoSync: true
+				});
+				
+				console.log('✅ HybridDatabaseManager instance created successfully');
+				
+				// Wait a bit for async initialization to complete
+				await new Promise(resolve => setTimeout(resolve, 2000));
+				
+				// Verify that the instance has required methods
+				if (typeof hybridDb.put !== 'function' || 
+					typeof hybridDb.get !== 'function' || 
+					typeof hybridDb.allDocs !== 'function' || 
+					typeof hybridDb.remove !== 'function') {
+					throw new Error('HybridDatabaseManager missing required methods');
+				}
+				
+				console.log('✅ HybridDatabaseManager methods verified');
+				
+				// Create database wrapper with all required methods
+				db = {
+					put: hybridDb.put.bind(hybridDb),
+					get: hybridDb.get.bind(hybridDb),
+					allDocs: hybridDb.allDocs.bind(hybridDb),
+					remove: hybridDb.remove.bind(hybridDb),
+					getMode: () => hybridDb.getMode?.() || dbMode,
+					getSyncStatus: () => hybridDb.getSyncStatus?.() || 'unknown',
+					manualSync: () => hybridDb.manualSync?.() || Promise.resolve(false),
+					onSyncStatusChange: hybridDb.onSyncStatusChange?.bind(hybridDb) || (() => {})
+				};
+				
+				console.log('✅ Database initialized successfully (CouchDB/Hybrid mode)');
+				return db;
+			} catch (error) {
+				console.warn('⚠️ CouchDB initialization failed, falling back to localStorage:', error);
+				// Log detailed error information
+				if (error instanceof Error) {
+					console.warn('⚠️ Error name:', error.name);
+					console.warn('⚠️ Error message:', error.message);
+					if (error.stack) {
+						console.warn('⚠️ Error stack:', error.stack);
+					}
+				}
+				dbMode = 'localStorage';
+			}
+		}
 
-		console.log('Database initialized successfully (localStorage fallback)');
+		// Fallback to localStorage mode
+		dbMode = 'localStorage';
+		db = {
+			...mockDB,
+			getMode: () => 'localStorage',
+			getSyncStatus: () => 'offline',
+			manualSync: () => Promise.resolve(false)
+		};
+
+		console.log('✅ Database initialized successfully (localStorage fallback)');
 		return db;
 	} catch (error) {
-		console.error('Error initializing database:', error);
+		console.error('❌ Error initializing database:', error);
 		throw error;
 	}
 }

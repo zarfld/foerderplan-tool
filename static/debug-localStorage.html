@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Debug Tool - Föderplan</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #2563eb;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .entry {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .entry-header {
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        .entry-content {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .error {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+        .valid {
+            background: #d1fae5;
+            border-color: #86efac;
+        }
+        .invalid {
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+        .buttons {
+            margin: 20px 0;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button.danger {
+            background: #dc2626;
+        }
+        button.danger:hover {
+            background: #b91c1c;
+        }
+        .log {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ LocalStorage Debug Tool - Föderplan</h1>
+        <p>Dieses Tool hilft bei der Diagnose und Bereinigung von localStorage-Problemen.</p>
+        
+        <div class="stats" id="stats">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+
+        <div class="buttons">
+            <button onclick="refresh()">🔄 Aktualisieren</button>
+            <button onclick="cleanInvalid()" class="danger">🧹 Ungültige Einträge löschen</button>
+            <button onclick="exportData()">📤 Daten exportieren</button>
+            <button onclick="clearAll()" class="danger">🗑️ Alles löschen</button>
+        </div>
+
+        <div id="entries">
+            <!-- Entries will be populated by JavaScript -->
+        </div>
+
+        <div class="container">
+            <h2>🔍 Debug Log</h2>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let logOutput = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            logOutput.push(logMessage);
+            document.getElementById('log').textContent = logOutput.join('\n');
+            console.log(logMessage);
+        }
+
+        function analyzeLocalStorage() {
+            log('📊 Analyzing localStorage...');
+            
+            const stats = {
+                total: localStorage.length,
+                foerderplan: 0,
+                valid: 0,
+                invalid: 0,
+                size: 0
+            };
+
+            const entries = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+
+                const value = localStorage.getItem(key);
+                if (!value) continue;
+
+                stats.size += key.length + value.length;
+
+                if (key.startsWith('foerderplan_')) {
+                    stats.foerderplan++;
+
+                    let isValid = true;
+                    let parsedValue = null;
+                    let errorMessage = '';
+
+                    try {
+                        parsedValue = JSON.parse(value);
+                        stats.valid++;
+                        log(`✅ Valid entry: ${key}`);
+                    } catch (error) {
+                        isValid = false;
+                        stats.invalid++;
+                        errorMessage = error.message;
+                        log(`❌ Invalid entry: ${key} - ${errorMessage}`);
+                    }
+
+                    entries.push({
+                        key,
+                        value,
+                        isValid,
+                        parsedValue,
+                        errorMessage,
+                        size: key.length + value.length
+                    });
+                }
+            }
+
+            return { stats, entries };
+        }
+
+        function renderStats(stats) {
+            const statsContainer = document.getElementById('stats');
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total}</div>
+                    <div class="stat-label">Gesamt localStorage Einträge</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.foerderplan}</div>
+                    <div class="stat-label">Föderplan Einträge</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.valid}</div>
+                    <div class="stat-label">Gültige Einträge</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.invalid}</div>
+                    <div class="stat-label">Ungültige Einträge</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${Math.round(stats.size / 1024)} KB</div>
+                    <div class="stat-label">Speicher verwendet</div>
+                </div>
+            `;
+        }
+
+        function renderEntries(entries) {
+            const entriesContainer = document.getElementById('entries');
+            
+            if (entries.length === 0) {
+                entriesContainer.innerHTML = '<div class="container"><p>Keine Föderplan-Einträge gefunden.</p></div>';
+                return;
+            }
+
+            const entriesHtml = entries.map(entry => {
+                const cssClass = entry.isValid ? 'valid' : 'invalid error';
+                const content = entry.isValid 
+                    ? JSON.stringify(entry.parsedValue, null, 2)
+                    : `FEHLER: ${entry.errorMessage}\n\nRohdaten:\n${entry.value}`;
+                
+                return `
+                    <div class="entry ${cssClass}">
+                        <div class="entry-header">
+                            ${entry.isValid ? '✅' : '❌'} ${entry.key} 
+                            <span style="font-weight: normal; color: #64748b;">(${entry.size} Zeichen)</span>
+                            ${!entry.isValid ? `<button onclick="removeEntry('${entry.key}')" style="float: right; font-size: 12px; padding: 5px 10px;">Löschen</button>` : ''}
+                        </div>
+                        <div class="entry-content">${content}</div>
+                    </div>
+                `;
+            }).join('');
+
+            entriesContainer.innerHTML = `<div class="container"><h2>📋 localStorage Einträge</h2>${entriesHtml}</div>`;
+        }
+
+        function refresh() {
+            log('🔄 Refreshing data...');
+            const { stats, entries } = analyzeLocalStorage();
+            renderStats(stats);
+            renderEntries(entries);
+            log(`✅ Analysis complete: ${stats.foerderplan} entries found, ${stats.invalid} invalid`);
+        }
+
+        function cleanInvalid() {
+            log('🧹 Cleaning invalid entries...');
+            const { entries } = analyzeLocalStorage();
+            let removed = 0;
+
+            entries.forEach(entry => {
+                if (!entry.isValid) {
+                    try {
+                        localStorage.removeItem(entry.key);
+                        removed++;
+                        log(`🗑️ Removed invalid entry: ${entry.key}`);
+                    } catch (error) {
+                        log(`❌ Failed to remove ${entry.key}: ${error.message}`);
+                    }
+                }
+            });
+
+            log(`✅ Cleanup complete: ${removed} invalid entries removed`);
+            refresh();
+        }
+
+        function removeEntry(key) {
+            if (confirm(`Sind Sie sicher, dass Sie den Eintrag "${key}" löschen möchten?`)) {
+                try {
+                    localStorage.removeItem(key);
+                    log(`🗑️ Manually removed entry: ${key}`);
+                    refresh();
+                } catch (error) {
+                    log(`❌ Failed to remove ${key}: ${error.message}`);
+                }
+            }
+        }
+
+        function exportData() {
+            log('📤 Exporting data...');
+            const { entries } = analyzeLocalStorage();
+            const validEntries = entries.filter(e => e.isValid);
+            
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                entries: validEntries.map(e => ({
+                    key: e.key,
+                    data: e.parsedValue
+                }))
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `foerderplan-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            log(`✅ Export complete: ${validEntries.length} entries exported`);
+        }
+
+        function clearAll() {
+            if (confirm('WARNUNG: Dies löscht ALLE localStorage-Daten für diese Seite. Sind Sie sicher?')) {
+                if (confirm('Letzte Warnung: ALLE Daten werden gelöscht. Fortfahren?')) {
+                    try {
+                        localStorage.clear();
+                        log('🗑️ All localStorage data cleared');
+                        refresh();
+                    } catch (error) {
+                        log(`❌ Failed to clear localStorage: ${error.message}`);
+                    }
+                }
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('🚀 LocalStorage Debug Tool initialized');
+            refresh();
+        });
+    </script>
+</body>
+</html>

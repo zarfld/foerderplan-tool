@@ -6,7 +6,7 @@ export default defineConfig({
 		global: 'globalThis'
 	},
 	optimizeDeps: {
-		include: ['pouchdb']
+		include: ['pouchdb', 'pouchdb-adapter-http', 'pouchdb-adapter-idb']
 	},
 	plugins: [sveltekit()]
 });
